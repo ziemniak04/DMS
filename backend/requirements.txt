@@ -1,0 +1,34 @@
+# FastAPI and server
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+pydantic==2.9.2
+pydantic-settings==2.6.0
+python-multipart==0.0.12
+
+# HTTP client with HTTP/2 support
+httpx==0.27.2
+
+# Firebase Admin SDK (for authentication)
+firebase-admin==6.5.0
+
+# Database
+# sqlalchemy==2.0.35
+# psycopg2-binary==2.9.9  # For PostgreSQL
+# supabase==2.9.0  # If using Supabase
+
+# Encryption
+cryptography==44.0.0
+
+# Environment variables
+python-dotenv==1.0.1
+
+# Date/time handling
+python-dateutil==2.9.0.post0
+
+# Logging and monitoring
+python-json-logger==2.0.7
+
+# Testing
+pytest==8.3.3
+pytest-asyncio==0.24.0
+httpx==0.27.2  # For testing async HTTP calls
