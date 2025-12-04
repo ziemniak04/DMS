@@ -10,6 +10,7 @@ import logging
 from app.config import get_settings
 from app.routers import health, dexcom
 from app.services.dexcom_api import DexcomAPIError, RateLimitError
+from app.database import init_db
 
 # Configure logging
 logging.basicConfig(
@@ -30,6 +31,18 @@ async def lifespan(app: FastAPI):
     logger.info(f"Dexcom environment: {settings.DEXCOM_ENVIRONMENT}")
     logger.info(f"Dexcom base URL: {settings.get_dexcom_base_url()}")
 
+    # Initialize database tables
+    if settings.DATABASE_URL:
+        try:
+            logger.info("Initializing database...")
+            init_db()
+            logger.info("Database initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize database: {e}")
+            logger.warning("Application will continue without database functionality")
+    else:
+        logger.warning("DATABASE_URL not configured. Database functionality disabled.")
+
     yield
 
     # Shutdown
@@ -48,10 +61,11 @@ app = FastAPI(
 settings = get_settings()
 
 # Configure CORS
+# For testing: allow all origins. In production, use settings.CORS_ORIGINS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
+    allow_origins=["*"],  # Allow all origins for testing
+    allow_credentials=False,  # Must be False when using wildcard origins
     allow_methods=["*"],
     allow_headers=["*"],
 )

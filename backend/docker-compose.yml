@@ -15,9 +15,9 @@ services:
       - DEBUG=true
 
       # Dexcom API Configuration
-      - DEXCOM_CLIENT_ID=${DEXCOM_CLIENT_ID}
-      - DEXCOM_CLIENT_SECRET=${DEXCOM_CLIENT_SECRET}
-      - DEXCOM_REDIRECT_URI=${DEXCOM_REDIRECT_URI:-http://localhost:8000/auth/callback}
+      - DEXCOM_CLIENT_ID=${DEXCOM_CLIENT_ID:-8Gn9DDBP2hH7ibO3yL6fddGbAzFcqJiR}
+      - DEXCOM_CLIENT_SECRET=${DEXCOM_CLIENT_SECRET:-I3VJFph8WrhyiqvV}
+      - DEXCOM_REDIRECT_URI=${DEXCOM_REDIRECT_URI:-http://localhost:8000/dexcom/auth/callback}
       - DEXCOM_ENVIRONMENT=${DEXCOM_ENVIRONMENT:-sandbox}
 
       # Firebase Configuration
@@ -25,7 +25,7 @@ services:
       - FIREBASE_CREDENTIALS_PATH=/app/firebase-credentials.json
 
       # Database Configuration
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://dms_user:dms_password@postgres:5432/dms}
 
       # Encryption Key
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
@@ -54,22 +54,30 @@ services:
 
     networks:
       - dms-network
+    depends_on:
+      postgres:
+        condition: service_healthy
 
-  # Optional: PostgreSQL database (if not using Firestore)
-  # postgres:
-  #   image: postgres:15-alpine
-  #   container_name: dms-postgres
-  #   environment:
-  #     - POSTGRES_DB=dms
-  #     - POSTGRES_USER=dms_user
-  #     - POSTGRES_PASSWORD=dms_password
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   networks:
-  #     - dms-network
-  #   restart: unless-stopped
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: dms-postgres
+    environment:
+      - POSTGRES_DB=dms
+      - POSTGRES_USER=dms_user
+      - POSTGRES_PASSWORD=dms_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dms-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dms_user -d dms"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # Optional: Redis for distributed rate limiting
   # redis:
@@ -88,6 +96,5 @@ networks:
   dms-network:
     driver: bridge
 
-# volumes:
-#   postgres_data:
-#   redis_data:
+volumes:
+  postgres_data:

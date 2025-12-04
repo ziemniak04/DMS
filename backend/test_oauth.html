@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dexcom OAuth Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border: 1px solid #bee5eb;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🩺 Dexcom OAuth 2.0 Authentication Test</h1>
+
+        <div class="info">
+            <strong>📋 OAuth Flow Status:</strong>
+            <div id="flowStatus">Not started</div>
+        </div>
+
+        <div class="test-section">
+            <h2>Step 1: Start OAuth Flow</h2>
+            <p>Click the button below to get the authorization URL and start the OAuth flow:</p>
+            <button onclick="startOAuth()">🔐 Start Dexcom Authorization</button>
+            <div id="authUrlStatus" class="status"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Step 2: Authorization Callback</h2>
+            <p>After authorizing with Dexcom, you'll be redirected back here.</p>
+            <div id="callbackStatus" class="status"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Step 3: Check Token Status</h2>
+            <p>Check if your tokens are stored and valid:</p>
+            <button onclick="checkTokenStatus()">📊 Check Token Status</button>
+            <div id="tokenStatus" class="status"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Step 4: Test Data Access</h2>
+            <p>Fetch your glucose data to verify the full flow:</p>
+            <button onclick="testDataAccess()">📈 Get Glucose Data (Last 24h)</button>
+            <div id="dataStatus" class="status"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Step 5: Revoke Authorization</h2>
+            <p>Test the token revocation:</p>
+            <button onclick="revokeAuth()">🚫 Revoke Authorization</button>
+            <div id="revokeStatus" class="status"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Debug Info</h2>
+            <pre id="debugInfo">No debug info yet</pre>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        const USER_ID = 1; // Default test user
+
+        // Check for OAuth callback on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const success = urlParams.get('success');
+            const error = urlParams.get('error');
+            const userId = urlParams.get('user_id');
+
+            if (success) {
+                showStatus('callbackStatus', `✅ Authorization successful! User ID: ${userId}`, 'success');
+                document.getElementById('flowStatus').innerHTML = '✅ Authorized';
+                checkTokenStatus();
+            } else if (error) {
+                showStatus('callbackStatus', `❌ Authorization failed: ${error}`, 'error');
+                document.getElementById('flowStatus').innerHTML = `❌ Failed: ${error}`;
+            }
+        });
+
+        async function startOAuth() {
+            try {
+                const response = await fetch(`${API_BASE}/dexcom/auth/url?state=test_123`);
+                const data = await response.json();
+
+                showStatus('authUrlStatus', '✅ Redirecting to Dexcom...', 'success');
+                document.getElementById('flowStatus').innerHTML = '🔄 Waiting for authorization...';
+
+                // Open in new tab for testing, or redirect current page
+                window.location.href = data.authorization_url;
+                // window.open(data.authorization_url, '_blank');
+            } catch (error) {
+                showStatus('authUrlStatus', `❌ Error: ${error.message}`, 'error');
+                updateDebug({ error: error.message, stack: error.stack });
+            }
+        }
+
+        async function checkTokenStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/dexcom/auth/status`, {
+                    headers: {
+                        'X-User-ID': USER_ID.toString()
+                    }
+                });
+                const data = await response.json();
+
+                if (data.authorized) {
+                    const expiryDate = new Date(data.expires_at);
+                    const isExpired = data.is_expired;
+                    const willExpireSoon = data.is_expiring_soon;
+
+                    let message = `✅ Token Status:\n`;
+                    message += `- Authorized: Yes\n`;
+                    message += `- Expires at: ${expiryDate.toLocaleString()}\n`;
+                    message += `- Is expired: ${isExpired ? 'Yes ⚠️' : 'No ✅'}\n`;
+                    message += `- Expiring soon: ${willExpireSoon ? 'Yes ⚠️' : 'No ✅'}\n`;
+                    message += `- Scope: ${data.scope}`;
+
+                    showStatus('tokenStatus', message, 'success');
+                    document.getElementById('flowStatus').innerHTML = '✅ Authorized & Active';
+                } else {
+                    showStatus('tokenStatus', '❌ Not authorized. Please start OAuth flow.', 'error');
+                    document.getElementById('flowStatus').innerHTML = '❌ Not authorized';
+                }
+
+                updateDebug(data);
+            } catch (error) {
+                showStatus('tokenStatus', `❌ Error: ${error.message}`, 'error');
+                updateDebug({ error: error.message });
+            }
+        }
+
+        async function testDataAccess() {
+            try {
+                // Get data for last 24 hours
+                const endDate = new Date();
+                const startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
+
+                const params = new URLSearchParams({
+                    start_date: startDate.toISOString(),
+                    end_date: endDate.toISOString()
+                });
+
+                const response = await fetch(`${API_BASE}/dexcom/egvs?${params}`, {
+                    headers: {
+                        'X-User-ID': USER_ID.toString()
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to fetch data');
+                }
+
+                const data = await response.json();
+
+                let message = `✅ Successfully retrieved ${data.egvs?.length || 0} glucose readings!\n\n`;
+                if (data.egvs && data.egvs.length > 0) {
+                    message += `Latest reading:\n`;
+                    const latest = data.egvs[0];
+                    message += `- Value: ${latest.value} mg/dL\n`;
+                    message += `- Trend: ${latest.trend}\n`;
+                    message += `- Time: ${new Date(latest.systemTime).toLocaleString()}`;
+                }
+
+                showStatus('dataStatus', message, 'success');
+                updateDebug(data);
+            } catch (error) {
+                showStatus('dataStatus', `❌ Error: ${error.message}`, 'error');
+                updateDebug({ error: error.message });
+            }
+        }
+
+        async function revokeAuth() {
+            try {
+                const response = await fetch(`${API_BASE}/dexcom/auth/revoke`, {
+                    method: 'POST',
+                    headers: {
+                        'X-User-ID': USER_ID.toString()
+                    }
+                });
+                const data = await response.json();
+
+                showStatus('revokeStatus', `✅ ${data.message}`, 'success');
+                document.getElementById('flowStatus').innerHTML = '🚫 Revoked';
+                updateDebug(data);
+            } catch (error) {
+                showStatus('revokeStatus', `❌ Error: ${error.message}`, 'error');
+                updateDebug({ error: error.message });
+            }
+        }
+
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+            element.style.display = 'block';
+        }
+
+        function updateDebug(data) {
+            document.getElementById('debugInfo').textContent = JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+</html>

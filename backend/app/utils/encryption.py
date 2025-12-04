@@ -49,6 +49,40 @@ class EncryptionService:
 
 
 # Global encryption service instance
+_encryption_service = None
+
+
 def get_encryption_service() -> EncryptionService:
     """Get encryption service instance"""
-    return EncryptionService()
+    global _encryption_service
+    if _encryption_service is None:
+        _encryption_service = EncryptionService()
+    return _encryption_service
+
+
+def encrypt(plaintext: str) -> str:
+    """
+    Encrypt plaintext string using the global encryption service.
+
+    Args:
+        plaintext: String to encrypt
+
+    Returns:
+        Encrypted string (base64 encoded)
+    """
+    service = get_encryption_service()
+    return service.encrypt(plaintext)
+
+
+def decrypt(ciphertext: str) -> str:
+    """
+    Decrypt ciphertext string using the global encryption service.
+
+    Args:
+        ciphertext: Encrypted string (base64 encoded)
+
+    Returns:
+        Decrypted plaintext string
+    """
+    service = get_encryption_service()
+    return service.decrypt(ciphertext)
