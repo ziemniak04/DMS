@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dms-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Application Settings
+      - APP_NAME=DMS Backend API
+      - APP_VERSION=1.0.0
+      - DEBUG=true
+
+      # Dexcom API Configuration
+      - DEXCOM_CLIENT_ID=${DEXCOM_CLIENT_ID:-8Gn9DDBP2hH7ibO3yL6fddGbAzFcqJiR}
+      - DEXCOM_CLIENT_SECRET=${DEXCOM_CLIENT_SECRET:-I3VJFph8WrhyiqvV}
+      - DEXCOM_REDIRECT_URI=${DEXCOM_REDIRECT_URI:-http://localhost:8000/dexcom/auth/callback}
+      - DEXCOM_ENVIRONMENT=${DEXCOM_ENVIRONMENT:-sandbox}
+
+      # Firebase Configuration
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - FIREBASE_CREDENTIALS_PATH=/app/firebase-credentials.json
+
+      # Database Configuration
+      - DATABASE_URL=${DATABASE_URL:-postgresql://dms_user:dms_password@postgres:5432/dms}
+
+      # Encryption Key
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+
+      # CORS Origins
+      - CORS_ORIGINS=["http://localhost:3000","http://localhost:8080"]
+
+      # Rate Limiting
+      - DEXCOM_RATE_LIMIT=60000
+      - DEXCOM_RATE_WINDOW=3600
+
+    volumes:
+      # Mount firebase credentials if using local file
+      - ./firebase-credentials.json:/app/firebase-credentials.json:ro
+      # Mount code for development (hot reload)
+      - ./app:/app/app
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    networks:
+      - dms-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: dms-postgres
+    environment:
+      - POSTGRES_DB=dms
+      - POSTGRES_USER=dms_user
+      - POSTGRES_PASSWORD=dms_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dms-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dms_user -d dms"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Optional: Redis for distributed rate limiting
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: dms-redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - dms-network
+  #   restart: unless-stopped
+  #   command: redis-server --appendonly yes
+
+networks:
+  dms-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
