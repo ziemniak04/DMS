@@ -33,7 +33,6 @@ class User {
   bool get isDoctor => role == 'doctor';
   bool get isPatient => role == 'patient';
 
-  /// TODO: [PLACEHOLDER] Implement fromJson when Firebase is connected
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] ?? '',
@@ -41,14 +40,20 @@ class User {
       name: json['name'] ?? '',
       role: json['role'] ?? 'patient',
       profileImageUrl: json['profileImageUrl'],
-      createdAt: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt']) 
+      createdAt: json['createdAt'] != null
+          ? (json['createdAt'] is String
+              ? DateTime.parse(json['createdAt'])
+              : DateTime.fromMillisecondsSinceEpoch(
+                  json['createdAt'].millisecondsSinceEpoch))
           : null,
       specialization: json['specialization'],
       licenseNumber: json['licenseNumber'],
       doctorId: json['doctorId'],
-      dateOfBirth: json['dateOfBirth'] != null 
-          ? DateTime.parse(json['dateOfBirth']) 
+      dateOfBirth: json['dateOfBirth'] != null
+          ? (json['dateOfBirth'] is String
+              ? DateTime.parse(json['dateOfBirth'])
+              : DateTime.fromMillisecondsSinceEpoch(
+                  json['dateOfBirth'].millisecondsSinceEpoch))
           : null,
       diabetesType: json['diabetesType'],
     );

@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:dms_app/core/theme/app_theme.dart';
 import 'package:dms_app/core/router/app_router.dart';
 import 'package:dms_app/providers/auth_provider.dart';
 import 'package:dms_app/providers/glucose_provider.dart';
 import 'package:dms_app/providers/events_provider.dart';
+import 'package:dms_app/firebase_options.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // TODO: [PLACEHOLDER] Initialize Firebase
-  // await Firebase.initializeApp(
-  //   options: DefaultFirebaseOptions.currentPlatform,
-  // );
-  
+
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const DMSApp());
 }
 
