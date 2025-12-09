@@ -78,6 +78,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // Data Section
           _buildSectionHeader('Dane'),
           ListTile(
+            title: const Text('Połączenie Dexcom'),
+            subtitle: const Text('Połącz czujnik Dexcom CGM'),
+            trailing: const Icon(Icons.sensors),
+            onTap: () => context.push('/settings/dexcom'),
+          ),
+          ListTile(
             title: const Text('Eksport danych'),
             subtitle: const Text('Pobierz dane w formacie CSV'),
             trailing: const Icon(Icons.download),

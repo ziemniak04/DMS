@@ -33,10 +33,18 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     _loadData();
   }
 
-  void _loadData() {
+  void _loadData() async {
     final authProvider = context.read<AuthProvider>();
     final glucoseProvider = context.read<GlucoseProvider>();
-    glucoseProvider.initializeMockData(authProvider.currentUser?.id ?? 'demo');
+    final patientId = authProvider.currentUser?.id ?? 'demo';
+
+    // Try to initialize Dexcom with stored credentials
+    await glucoseProvider.initializeDexcom(patientId);
+
+    // If not connected, load mock data for demo purposes
+    if (!glucoseProvider.sensorConnected) {
+      await glucoseProvider.initializeMockData(patientId);
+    }
   }
 
   @override
@@ -70,28 +78,51 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
   }
 
   Widget _buildGlucoseTab() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Header with profile
-          _buildHeader(),
-          
-          // Alert Status Card
-          _buildAlertCard(),
-          
-          // Sensor Button
-          _buildSensorButton(),
-          
-          // Glucose Chart Card
-          _buildChartCard(),
-          
-          // Clarity Section (placeholder)
-          _buildClarityCard(),
-          
-          const SizedBox(height: 80), // Space for FAB
-        ],
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            // Header with profile
+            _buildHeader(),
+
+            // Alert Status Card
+            _buildAlertCard(),
+
+            // Sensor Button
+            _buildSensorButton(),
+
+            // Current Glucose Display
+            _buildCurrentGlucoseCard(),
+
+            // Glucose Chart Card
+            _buildChartCard(),
+
+            // Clarity Section (placeholder)
+            _buildClarityCard(),
+
+            const SizedBox(height: 80), // Space for FAB
+          ],
+        ),
       ),
     );
+  }
+
+  Future<void> _refreshData() async {
+    final authProvider = context.read<AuthProvider>();
+    final glucoseProvider = context.read<GlucoseProvider>();
+    final patientId = authProvider.currentUser?.id ?? 'demo';
+
+    if (glucoseProvider.sensorConnected) {
+      // Refresh current reading from Dexcom
+      await glucoseProvider.refreshCurrentReading(patientId);
+      // Reload glucose readings
+      await glucoseProvider.loadGlucoseReadings(patientId, hours: 24);
+    } else {
+      // Try to reconnect
+      _loadData();
+    }
   }
 
   Widget _buildHeader() {
@@ -154,30 +185,226 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
       builder: (context, glucose, child) {
         return Padding(
           padding: const EdgeInsets.all(16),
-          child: ElevatedButton(
+          child: ElevatedButton.icon(
             onPressed: () async {
-              // TODO: [PLACEHOLDER] Implement sensor connection flow
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Łączenie z sensorem - do zaimplementowania'),
-                ),
-              );
+              // Navigate to Dexcom connection screen
+              await context.push('/settings/dexcom');
+
+              // Refresh data after returning
+              if (mounted) {
+                _loadData();
+              }
             },
+            icon: Icon(
+              glucose.sensorConnected ? Icons.sensors : Icons.sensor_occupied,
+              size: 20,
+            ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3C4043),
+              backgroundColor: glucose.sensorConnected
+                  ? Colors.green.shade700
+                  : const Color(0xFF3C4043),
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
             ),
-            child: Text(
-              glucose.sensorConnected ? 'Sensor połączony' : 'Uruchom nowy sensor',
-              style: const TextStyle(fontSize: 16),
+            label: Text(
+              glucose.sensorConnected ? 'Sensor połączony' : 'Połącz sensor',
+              style: const TextStyle(fontSize: 16, color: Colors.white),
             ),
           ),
         );
       },
     );
+  }
+
+  Widget _buildCurrentGlucoseCard() {
+    return Consumer<GlucoseProvider>(
+      builder: (context, glucose, child) {
+        if (glucose.currentReading == null && !glucose.sensorConnected) {
+          return const SizedBox.shrink();
+        }
+
+        final reading = glucose.currentReading;
+        final isLoading = glucose.isLoading;
+
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppTheme.primaryColor,
+                AppTheme.primaryColor.withValues(alpha: 0.8),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Aktualny poziom glukozy',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (isLoading)
+                        const CircularProgressIndicator(color: Colors.white)
+                      else if (reading != null)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              reading.value.toInt().toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 56,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Text(
+                                'mg/dL',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      else
+                        const Text(
+                          '--',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 56,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (reading != null && reading.trend != null)
+                    _buildTrendIndicator(reading.trend!),
+                ],
+              ),
+              if (reading != null) ...[
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _getTimeAgo(reading.timestamp),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                    if (glucose.sensorConnected)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: const [
+                            Icon(
+                              Icons.circle,
+                              size: 8,
+                              color: Colors.greenAccent,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Na żywo',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTrendIndicator(String trend) {
+    IconData icon;
+    Color color = Colors.white;
+
+    switch (trend) {
+      case 'rising_fast':
+        icon = Icons.arrow_upward;
+        break;
+      case 'rising':
+        icon = Icons.trending_up;
+        break;
+      case 'stable':
+        icon = Icons.trending_flat;
+        break;
+      case 'falling':
+        icon = Icons.trending_down;
+        break;
+      case 'falling_fast':
+        icon = Icons.arrow_downward;
+        break;
+      default:
+        icon = Icons.remove;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(
+        icon,
+        size: 40,
+        color: color,
+      ),
+    );
+  }
+
+  String _getTimeAgo(DateTime timestamp) {
+    final difference = DateTime.now().difference(timestamp);
+    if (difference.inMinutes < 1) {
+      return 'Teraz';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} min temu';
+    } else {
+      return '${difference.inHours} godz. temu';
+    }
   }
 
   Widget _buildChartCard() {

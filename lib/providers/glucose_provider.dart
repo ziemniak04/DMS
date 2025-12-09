@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:dms_app/models/glucose_reading.dart';
+import 'package:dms_app/services/dexcom_service.dart';
 import 'dart:math';
+import 'dart:async';
 
 /// Glucose Data Provider
-/// 
-/// TODO: [PLACEHOLDER] Connect to real sensor API (Dexcom G7, Libre, etc.)
-/// TODO: [PLACEHOLDER] Implement real-time data streaming
-/// TODO: [PLACEHOLDER] Add Bluetooth connectivity for sensors
-/// TODO: [PLACEHOLDER] Implement data sync with Firebase
+///
+/// Integrated with Dexcom CGM for real-time glucose monitoring
 class GlucoseProvider extends ChangeNotifier {
+  final DexcomService _dexcomService = DexcomService();
+
   List<GlucoseReading> _readings = [];
   GlucoseReading? _currentReading;
   bool _isLoading = false;
   bool _sensorConnected = false;
   String? _error;
+  StreamSubscription<GlucoseReading>? _glucoseStreamSubscription;
 
   List<GlucoseReading> get readings => _readings;
   GlucoseReading? get currentReading => _currentReading;
@@ -27,8 +29,35 @@ class GlucoseProvider extends ChangeNotifier {
     return _readings.where((r) => r.timestamp.isAfter(cutoff)).toList();
   }
 
-  /// Initialize with mock data
-  /// TODO: [PLACEHOLDER] Replace with real sensor API calls
+  /// Initialize with Dexcom service
+  Future<void> initializeDexcom(String patientId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      // Try to authenticate with stored credentials
+      final authenticated = await _dexcomService.initialize();
+
+      if (authenticated) {
+        _sensorConnected = true;
+        // Load glucose readings for the last 24 hours
+        await loadGlucoseReadings(patientId, hours: 24);
+      } else {
+        _sensorConnected = false;
+        _error = 'Dexcom not connected. Please authenticate.';
+      }
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to initialize Dexcom: ${e.toString()}';
+      _isLoading = false;
+      _sensorConnected = false;
+      notifyListeners();
+    }
+  }
+
+  /// Initialize with mock data (for testing without Dexcom)
   Future<void> initializeMockData(String patientId) async {
     _isLoading = true;
     notifyListeners();
@@ -38,13 +67,75 @@ class GlucoseProvider extends ChangeNotifier {
       _readings = _generateMockReadings(patientId, hours: 24);
       _currentReading = _readings.isNotEmpty ? _readings.last : null;
       _sensorConnected = false; // Mock sensor not connected state
-      
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
       _error = 'Failed to load glucose data: ${e.toString()}';
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  /// Load glucose readings from Dexcom
+  Future<void> loadGlucoseReadings(String patientId, {int hours = 24}) async {
+    if (!_dexcomService.isAuthenticated) {
+      _error = 'Not authenticated with Dexcom';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      _readings = await _dexcomService.getReadings(
+        patientId,
+        minutes: hours * 60,
+      );
+      _currentReading = _readings.isNotEmpty ? _readings.last : null;
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to load glucose readings: ${e.toString()}';
+      notifyListeners();
+    }
+  }
+
+  /// Authenticate with Dexcom
+  Future<bool> authenticateDexcom(
+    String patientId,
+    String username,
+    String password, {
+    String region = 'us',
+    bool saveCredentials = true,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final authenticated = await _dexcomService.authenticate(
+        username,
+        password,
+        region: region,
+        saveCredentials: saveCredentials,
+      );
+
+      if (authenticated) {
+        _sensorConnected = true;
+        // Load initial data
+        await loadGlucoseReadings(patientId, hours: 24);
+        _error = null;
+      } else {
+        _sensorConnected = false;
+        _error = 'Failed to authenticate with Dexcom';
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return authenticated;
+    } catch (e) {
+      _error = 'Dexcom authentication error: ${e.toString()}';
+      _sensorConnected = false;
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 
@@ -93,38 +184,97 @@ class GlucoseProvider extends ChangeNotifier {
     return 'stable';
   }
 
-  /// Connect to sensor
-  /// TODO: [PLACEHOLDER] Implement real Bluetooth/API connection
+  /// Connect to Dexcom sensor (alias for backwards compatibility)
   Future<bool> connectSensor() async {
-    _isLoading = true;
+    // Check if already authenticated
+    return _dexcomService.isAuthenticated;
+  }
+
+  /// Disconnect from Dexcom sensor
+  Future<void> disconnectSensor() async {
+    await stopGlucoseStream();
+    await _dexcomService.signOut();
+    _sensorConnected = false;
+    _readings.clear();
+    _currentReading = null;
     notifyListeners();
+  }
+
+  /// Start real-time glucose data streaming
+  /// Automatically updates glucose readings every 5 minutes (default Dexcom interval)
+  Future<void> startGlucoseStream(String patientId, {int intervalSeconds = 300}) async {
+    if (!_dexcomService.isAuthenticated) {
+      _error = 'Not authenticated with Dexcom';
+      notifyListeners();
+      return;
+    }
 
     try {
-      // Simulate sensor connection
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // TODO: [PLACEHOLDER] Implement actual sensor connection
-      // - Scan for nearby Bluetooth devices
-      // - Pair with sensor
-      // - Start receiving data
-      
+      // Cancel existing stream if any
+      await stopGlucoseStream();
+
+      // Start new stream
+      _glucoseStreamSubscription = _dexcomService
+          .streamReadings(patientId, seconds: intervalSeconds)
+          .listen(
+        (reading) {
+          // Add new reading to the list
+          _readings.add(reading);
+          _currentReading = reading;
+
+          // Keep only last 24 hours of data
+          final cutoff = DateTime.now().subtract(const Duration(hours: 24));
+          _readings.removeWhere((r) => r.timestamp.isBefore(cutoff));
+
+          notifyListeners();
+        },
+        onError: (error) {
+          _error = 'Glucose stream error: ${error.toString()}';
+          notifyListeners();
+        },
+      );
+
       _sensorConnected = true;
-      _isLoading = false;
       notifyListeners();
-      return true;
     } catch (e) {
-      _error = 'Failed to connect sensor: ${e.toString()}';
-      _sensorConnected = false;
-      _isLoading = false;
+      _error = 'Failed to start glucose stream: ${e.toString()}';
       notifyListeners();
-      return false;
     }
   }
 
-  /// Disconnect sensor
-  Future<void> disconnectSensor() async {
-    _sensorConnected = false;
-    notifyListeners();
+  /// Stop real-time glucose data streaming
+  Future<void> stopGlucoseStream() async {
+    await _glucoseStreamSubscription?.cancel();
+    _glucoseStreamSubscription = null;
+  }
+
+  /// Get current reading from Dexcom
+  Future<void> refreshCurrentReading(String patientId) async {
+    if (!_dexcomService.isAuthenticated) {
+      _error = 'Not authenticated with Dexcom';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      final reading = await _dexcomService.getCurrentReading(patientId);
+      if (reading != null) {
+        _currentReading = reading;
+        // Add to readings if it's newer
+        if (_readings.isEmpty || reading.timestamp.isAfter(_readings.last.timestamp)) {
+          _readings.add(reading);
+        }
+        notifyListeners();
+      }
+    } catch (e) {
+      _error = 'Failed to refresh reading: ${e.toString()}';
+      notifyListeners();
+    }
+  }
+
+  /// Check if Dexcom credentials are stored
+  Future<bool> hasDexcomCredentials() async {
+    return await _dexcomService.hasStoredCredentials();
   }
 
   /// Add manual reading
@@ -169,5 +319,11 @@ class GlucoseProvider extends ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _glucoseStreamSubscription?.cancel();
+    super.dispose();
   }
 }
