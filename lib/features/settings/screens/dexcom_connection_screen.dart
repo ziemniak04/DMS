@@ -227,17 +227,14 @@ class _DexcomConnectionScreenState extends State<DexcomConnectionScreen> {
                   controller: _usernameController,
                   decoration: const InputDecoration(
                     labelText: 'Dexcom Share Username',
-                    hintText: 'Enter your email',
-                    prefixIcon: Icon(Icons.email),
+                    hintText: 'Enter your Dexcom Share username',
+                    prefixIcon: Icon(Icons.person),
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.text,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your username';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Please enter a valid email';
                     }
                     return null;
                   },

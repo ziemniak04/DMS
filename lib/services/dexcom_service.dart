@@ -151,6 +151,120 @@ class DexcomService {
     }
   }
 
+  /// Get all available glucose history (up to 24 hours - Dexcom Share API limit)
+  /// 
+  /// This fetches the maximum amount of historical data available from Dexcom Share.
+  /// Note: Dexcom Share API only provides up to 24 hours of data.
+  /// For older historical data, the official Dexcom Web API would be needed.
+  /// 
+  /// [patientId] - The patient ID to associate with readings
+  /// [maxCount] - Maximum number of readings (default: 288 = 24 hours at 5-min intervals)
+  Future<List<GlucoseReading>> getFullHistory(
+    String patientId, {
+    int? maxCount,
+  }) async {
+    if (!_isAuthenticated || _dexcom == null) {
+      throw Exception('Not authenticated with Dexcom');
+    }
+
+    try {
+      // Request maximum 24 hours (1440 minutes) with up to 288 readings
+      // (one reading every 5 minutes for 24 hours = 288 readings)
+      final readings = await _dexcom!.getGlucoseReadings(
+        minutes: 1440, // 24 hours - maximum supported by Dexcom Share API
+        maxCount: maxCount ?? 288,
+      );
+
+      if (readings == null || readings.isEmpty) {
+        return [];
+      }
+
+      return readings
+          .map((r) => _convertToGlucoseReading(r, patientId))
+          .toList();
+    } catch (e) {
+      print('Failed to get full history: $e');
+      rethrow;
+    }
+  }
+
+  /// Get last known readings even if sensor is currently inactive
+  /// 
+  /// This attempts to fetch the most recent readings available.
+  /// Useful for users whose sensor session has ended but want to see
+  /// their last recorded data.
+  /// 
+  /// [patientId] - The patient ID to associate with readings
+  /// [hours] - Number of hours to look back (default: 24, max: 24)
+  Future<DexcomHistoryResult> getHistoryWithStatus(
+    String patientId, {
+    int hours = 24,
+  }) async {
+    if (!_isAuthenticated || _dexcom == null) {
+      throw Exception('Not authenticated with Dexcom');
+    }
+
+    // Clamp to maximum 24 hours (Dexcom Share API limit)
+    final effectiveHours = hours.clamp(1, 24);
+    final minutes = effectiveHours * 60;
+    final expectedReadings = effectiveHours * 12; // 12 readings per hour (every 5 min)
+
+    try {
+      final readings = await _dexcom!.getGlucoseReadings(
+        minutes: minutes,
+        maxCount: expectedReadings,
+      );
+
+      if (readings == null || readings.isEmpty) {
+        return DexcomHistoryResult(
+          readings: [],
+          sensorActive: false,
+          lastReadingTime: null,
+          message: 'No glucose data available. Your sensor may be inactive or not sharing data.',
+        );
+      }
+
+      final glucoseReadings = readings
+          .map((r) => _convertToGlucoseReading(r, patientId))
+          .toList();
+
+      // Sort by timestamp descending (most recent first)
+      glucoseReadings.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+      final lastReading = glucoseReadings.first;
+      final timeSinceLastReading = DateTime.now().difference(lastReading.timestamp);
+      
+      // If last reading is more than 15 minutes old, sensor is likely inactive
+      final sensorActive = timeSinceLastReading.inMinutes <= 15;
+
+      String message;
+      if (sensorActive) {
+        message = 'Sensor is active. ${glucoseReadings.length} readings retrieved.';
+      } else if (timeSinceLastReading.inHours < 1) {
+        message = 'Last reading ${timeSinceLastReading.inMinutes} minutes ago. Sensor may be warming up or disconnected.';
+      } else if (timeSinceLastReading.inHours < 24) {
+        message = 'Last reading ${timeSinceLastReading.inHours} hours ago. Showing historical data.';
+      } else {
+        message = 'Last reading over 24 hours ago. Sensor session may have ended.';
+      }
+
+      return DexcomHistoryResult(
+        readings: glucoseReadings,
+        sensorActive: sensorActive,
+        lastReadingTime: lastReading.timestamp,
+        message: message,
+      );
+    } catch (e) {
+      print('Failed to get history with status: $e');
+      return DexcomHistoryResult(
+        readings: [],
+        sensorActive: false,
+        lastReadingTime: null,
+        message: 'Error fetching data: ${e.toString()}',
+      );
+    }
+  }
+
   /// Stream glucose readings at regular intervals
   ///
   /// [patientId] - The patient ID to associate with readings
@@ -308,5 +422,40 @@ class DexcomService {
     } catch (e) {
       return false;
     }
+  }
+}
+
+/// Result class for history fetching with sensor status
+class DexcomHistoryResult {
+  final List<GlucoseReading> readings;
+  final bool sensorActive;
+  final DateTime? lastReadingTime;
+  final String message;
+
+  DexcomHistoryResult({
+    required this.readings,
+    required this.sensorActive,
+    this.lastReadingTime,
+    required this.message,
+  });
+
+  /// Check if there is any data available
+  bool get hasData => readings.isNotEmpty;
+
+  /// Get time since last reading
+  Duration? get timeSinceLastReading {
+    if (lastReadingTime == null) return null;
+    return DateTime.now().difference(lastReadingTime!);
+  }
+
+  /// Get a human-readable status
+  String get statusText {
+    if (!hasData) return 'No data available';
+    if (sensorActive) return 'Sensor active';
+    final duration = timeSinceLastReading;
+    if (duration == null) return 'Unknown status';
+    if (duration.inMinutes < 60) return 'Last reading ${duration.inMinutes}m ago';
+    if (duration.inHours < 24) return 'Last reading ${duration.inHours}h ago';
+    return 'Sensor inactive';
   }
 }

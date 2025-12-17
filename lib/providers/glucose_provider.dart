@@ -200,6 +200,87 @@ class GlucoseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Fetch all available history from Dexcom (up to 24 hours)
+  /// 
+  /// This is useful for users who want to see their historical data
+  /// even when their sensor is not currently active.
+  Future<DexcomHistoryResult> fetchHistoryWithStatus(String patientId, {int hours = 24}) async {
+    if (!_dexcomService.isAuthenticated) {
+      return DexcomHistoryResult(
+        readings: [],
+        sensorActive: false,
+        lastReadingTime: null,
+        message: 'Not authenticated with Dexcom. Please connect your account.',
+      );
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final result = await _dexcomService.getHistoryWithStatus(patientId, hours: hours);
+      
+      if (result.hasData) {
+        _readings = result.readings;
+        _currentReading = result.readings.isNotEmpty ? result.readings.first : null;
+        _sensorConnected = result.sensorActive;
+      }
+
+      _isLoading = false;
+      _error = result.sensorActive ? null : result.message;
+      notifyListeners();
+      
+      return result;
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Failed to fetch history: ${e.toString()}';
+      notifyListeners();
+      
+      return DexcomHistoryResult(
+        readings: [],
+        sensorActive: false,
+        lastReadingTime: null,
+        message: _error!,
+      );
+    }
+  }
+
+  /// Fetch full 24-hour history from Dexcom
+  Future<void> fetchFullHistory(String patientId) async {
+    if (!_dexcomService.isAuthenticated) {
+      _error = 'Not authenticated with Dexcom';
+      notifyListeners();
+      return;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _readings = await _dexcomService.getFullHistory(patientId);
+      
+      if (_readings.isNotEmpty) {
+        // Sort by timestamp descending
+        _readings.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        _currentReading = _readings.first;
+        
+        // Check if sensor is active (last reading within 15 minutes)
+        final timeSinceLastReading = DateTime.now().difference(_currentReading!.timestamp);
+        _sensorConnected = timeSinceLastReading.inMinutes <= 15;
+      } else {
+        _sensorConnected = false;
+      }
+
+      _isLoading = false;
+      _error = null;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Failed to fetch history: ${e.toString()}';
+      notifyListeners();
+    }
+  }
+
   /// Start real-time glucose data streaming
   /// Automatically updates glucose readings every 5 minutes (default Dexcom interval)
   Future<void> startGlucoseStream(String patientId, {int intervalSeconds = 300}) async {
