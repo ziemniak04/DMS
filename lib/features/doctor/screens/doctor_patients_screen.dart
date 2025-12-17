@@ -15,7 +15,7 @@ class DoctorPatientsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Moi pacjenci'),
+        title: const Text('My Patients'),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -45,8 +45,8 @@ class DoctorPatientsScreen extends StatelessWidget {
                   style: const TextStyle(color: AppTheme.primaryColor),
                 ),
               ),
-              title: Text('Pacjent $index'),
-              subtitle: const Text('Ostatni pomiar: 120 mg/dL'),
+              title: Text('Patient $index'),
+              subtitle: const Text('Last reading: 120 mg/dL'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push('/doctor/patient/patient_$index'),
             ),
@@ -58,12 +58,12 @@ class DoctorPatientsScreen extends StatelessWidget {
           // TODO: [PLACEHOLDER] Implement patient invitation
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Zaproszenie pacjenta - do zaimplementowania'),
+              content: Text('Patient invitation - to be implemented'),
             ),
           );
         },
         icon: const Icon(Icons.person_add),
-        label: const Text('Zaproś pacjenta'),
+        label: const Text('Invite Patient'),
       ),
     );
   }

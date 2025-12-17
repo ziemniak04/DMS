@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:dms_app/core/theme/app_theme.dart';
@@ -82,9 +83,9 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
     final difference = now.difference(timestamp);
 
     if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} min temu';
+      return '${difference.inMinutes} min ago';
     } else if (difference.inHours < 24) {
-      return '${difference.inHours} godz. temu';
+      return '${difference.inHours} hrs ago';
     } else {
       return DateFormat('dd.MM.yyyy HH:mm').format(timestamp);
     }
@@ -94,7 +95,7 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Historia'),
+        title: const Text('History'),
         actions: [
           // View toggle
           IconButton(
@@ -104,13 +105,13 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
                 _selectedView = _selectedView == 'list' ? 'chart' : 'list';
               });
             },
-            tooltip: _selectedView == 'list' ? 'Pokaż wykres' : 'Pokaż listę',
+            tooltip: _selectedView == 'list' ? 'Show Chart' : 'Show List',
           ),
           // Refresh button
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _isLoading ? null : _loadHistory,
-            tooltip: 'Odśwież',
+            tooltip: 'Refresh',
           ),
         ],
       ),
@@ -157,7 +158,7 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isActive ? 'Sensor aktywny' : 'Sensor nieaktywny',
+                    isActive ? 'Sensor active' : 'Sensor inactive',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: statusColor.shade700,
@@ -175,7 +176,7 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
                   if (_historyResult!.lastReadingTime != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Ostatni odczyt: ${DateFormat('dd.MM.yyyy HH:mm').format(_historyResult!.lastReadingTime!)}',
+                      'Last reading: ${DateFormat('dd.MM.yyyy HH:mm').format(_historyResult!.lastReadingTime!)}',
                       style: TextStyle(
                         color: statusColor.shade700,
                         fontSize: 12,
@@ -197,7 +198,7 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
                     ),
                   ),
                   Text(
-                    'odczytów',
+                    'readings',
                     style: TextStyle(
                       fontSize: 12,
                       color: statusColor.shade700,
@@ -217,10 +218,10 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          _buildTimeChip(3, '3 godz.'),
-          _buildTimeChip(6, '6 godz.'),
-          _buildTimeChip(12, '12 godz.'),
-          _buildTimeChip(24, '24 godz.'),
+          _buildTimeChip(3, '3 hrs'),
+          _buildTimeChip(6, '6 hrs'),
+          _buildTimeChip(12, '12 hrs'),
+          _buildTimeChip(24, '24 hrs'),
         ],
       ),
     );
@@ -280,8 +281,8 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
             const SizedBox(height: 16),
             Text(
               isConnected
-                  ? 'Brak danych do wyświetlenia'
-                  : 'Nie połączono z Dexcom',
+                  ? 'No data to display'
+                  : 'Not connected to Dexcom',
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -290,8 +291,8 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
             const SizedBox(height: 8),
             Text(
               isConnected
-                  ? 'Poczekaj na nowe odczyty z sensora'
-                  : 'Połącz swoje konto Dexcom w ustawieniach, aby zobaczyć historię pomiarów',
+                  ? 'Wait for new sensor readings'
+                  : 'Connect your Dexcom account in settings to view reading history',
               textAlign: TextAlign.center,
               style: const TextStyle(color: AppTheme.textSecondary),
             ),
@@ -299,10 +300,10 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
             if (!isConnected)
               ElevatedButton.icon(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/settings/dexcom');
+                  context.push('/settings/dexcom');
                 },
                 icon: const Icon(Icons.link),
-                label: const Text('Połącz Dexcom'),
+                label: const Text('Connect Dexcom'),
               ),
           ],
         ),
@@ -347,10 +348,10 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildStatItem('Średnia', '${avg.toStringAsFixed(0)} mg/dL', _getGlucoseColor(avg)),
+            _buildStatItem('Average', '${avg.toStringAsFixed(0)} mg/dL', _getGlucoseColor(avg)),
             _buildStatItem('Min', '${min.toStringAsFixed(0)} mg/dL', _getGlucoseColor(min)),
             _buildStatItem('Max', '${max.toStringAsFixed(0)} mg/dL', _getGlucoseColor(max)),
-            _buildStatItem('W zakresie', '$inRangePercent%', AppTheme.glucoseNormal),
+            _buildStatItem('In Range', '$inRangePercent%', AppTheme.glucoseNormal),
           ],
         ),
       ),
@@ -386,7 +387,7 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
     // Group readings by date
     final groupedReadings = <String, List<GlucoseReading>>{};
     for (final reading in readings) {
-      final dateKey = DateFormat('dd MMMM yyyy', 'pl').format(reading.timestamp);
+      final dateKey = DateFormat('dd MMMM yyyy', 'en').format(reading.timestamp);
       groupedReadings.putIfAbsent(dateKey, () => []).add(reading);
     }
 

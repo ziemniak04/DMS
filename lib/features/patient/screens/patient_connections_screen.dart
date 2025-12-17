@@ -13,7 +13,7 @@ class PatientConnectionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Połączenia'),
+        title: const Text('Connections'),
       ),
       body: const Center(
         child: Column(
@@ -22,14 +22,14 @@ class PatientConnectionsScreen extends StatelessWidget {
             Icon(Icons.share, size: 64, color: AppTheme.textSecondary),
             SizedBox(height: 16),
             Text(
-              'Połączenia z lekarzami',
+              'Doctor Connections',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                'TODO: [PLACEHOLDER] Tutaj będzie można połączyć się z lekarzem i udostępniać dane',
+                'TODO: [PLACEHOLDER] Here you will be able to connect with a doctor and share your data',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppTheme.textSecondary),
               ),

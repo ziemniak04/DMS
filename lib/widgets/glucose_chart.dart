@@ -24,7 +24,7 @@ class GlucoseChart extends StatelessWidget {
   Widget build(BuildContext context) {
     if (readings.isEmpty) {
       return const Center(
-        child: Text('Brak danych do wyświetlenia'),
+        child: Text('No data to display'),
       );
     }
 
@@ -74,7 +74,7 @@ class GlucoseChart extends StatelessWidget {
                 if (hour == 0) return const Text('00');
                 if (hour == 8) return const Text('08');
                 if (hour == 16) return const Text('16');
-                if (hour == 24) return const Text('Teraz');
+                if (hour == 24) return const Text('Now');
                 return const Text('');
               },
             ),

@@ -177,7 +177,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                hasAlerts ? 'Ostrzeżenie!' : 'Brak ostrzeżeń',
+                hasAlerts ? 'Warning!' : 'No warnings',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -218,7 +218,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
               ),
             ),
             label: Text(
-              glucose.sensorConnected ? 'Sensor połączony' : 'Połącz sensor',
+              glucose.sensorConnected ? 'Sensor connected' : 'Connect sensor',
               style: const TextStyle(fontSize: 16, color: Colors.white),
             ),
           ),
@@ -267,7 +267,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Aktualny poziom glukozy',
+                        'Current glucose level',
                         style: TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -347,7 +347,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                             ),
                             SizedBox(width: 6),
                             Text(
-                              'Na żywo',
+                              'Live',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
@@ -408,11 +408,11 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
   String _getTimeAgo(DateTime timestamp) {
     final difference = DateTime.now().difference(timestamp);
     if (difference.inMinutes < 1) {
-      return 'Teraz';
+      return 'Now';
     } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} min temu';
+      return '${difference.inMinutes} min ago';
     } else {
-      return '${difference.inHours} godz. temu';
+      return '${difference.inHours} hrs ago';
     }
   }
 
@@ -455,7 +455,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
-                              hours == 24 ? '24 godz.' : '$hours',
+                              hours == 24 ? '24 hrs' : '$hours',
                               style: TextStyle(
                                 fontWeight: isSelected 
                                     ? FontWeight.bold 
@@ -589,7 +589,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           Icon(Icons.share, size: 64, color: AppTheme.textSecondary),
           SizedBox(height: 16),
           Text(
-            'Połączenia',
+            'Connections',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 8),
@@ -609,36 +609,36 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Profil',
+            'Profile',
             style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 24),
           
           // App Settings Section
           const Text(
-            'Ustawienia aplikacji',
+            'App Settings',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 8),
           _buildSettingsItem(
             icon: Icons.notifications_outlined,
-            title: 'Ostrzeżenia',
+            title: 'Alerts',
             onTap: () => context.push('/settings/alerts'),
           ),
           _buildSettingsItem(
             icon: Icons.event_note_outlined,
-            title: 'Zdarzenia',
+            title: 'Events',
             onTap: () {},
           ),
           _buildSettingsItem(
             icon: Icons.radio_button_checked,
-            title: 'Zakładka Glukoza',
+            title: 'Glucose Tab',
             onTap: () {},
           ),
           _buildSettingsToggle(
             icon: Icons.preview_outlined,
-            title: 'Szybki podgląd',
-            subtitle: 'Szybko sprawdzaj informacje G7 w menu powiadomień',
+            title: 'Quick Preview',
+            subtitle: 'Quickly check G7 info in the notification menu',
             value: true,
             onChanged: (v) {},
           ),
@@ -647,14 +647,14 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           
           // Phone Settings Section
           const Text(
-            'Ustawienia telefonu',
+            'Phone Settings',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 8),
           _buildSettingsItem(
             icon: Icons.phone_android,
-            title: 'Bezpieczeństwo aplikacji G7 na urządzeniach z systemem Android',
-            subtitle: 'Unikaj ustawień telefonu, które uniemożliwiają działanie ostrzeżeń i aplikacji.',
+            title: 'G7 app security on Android devices',
+            subtitle: 'Avoid phone settings that prevent alerts and app from working.',
             onTap: () {},
           ),
           
@@ -669,7 +669,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
               }
             },
             icon: const Icon(Icons.logout),
-            label: const Text('Wyloguj się'),
+            label: const Text('Sign Out'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
               foregroundColor: Colors.white,
@@ -729,19 +729,19 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.radio_button_checked),
-          label: 'Glukoza',
+          label: 'Glucose',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.article_outlined),
-          label: 'Historia',
+          label: 'History',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.share_outlined),
-          label: 'Połączenia',
+          label: 'Connections',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
-          label: 'Profil',
+          label: 'Profile',
         ),
       ],
     );
@@ -795,9 +795,9 @@ class _HistoryTabContent extends StatelessWidget {
     final difference = now.difference(timestamp);
 
     if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} min temu';
+      return '${difference.inMinutes} min ago';
     } else if (difference.inHours < 24) {
-      return '${difference.inHours} godz. temu';
+      return '${difference.inHours} hrs ago';
     } else {
       return DateFormat('dd.MM.yyyy HH:mm').format(timestamp);
     }
@@ -814,7 +814,7 @@ class _HistoryTabContent extends StatelessWidget {
             children: [
               const Expanded(
                 child: Text(
-                  'Historia pomiarów',
+                  'Measurement History',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -824,12 +824,12 @@ class _HistoryTabContent extends StatelessWidget {
               IconButton(
                 icon: Icon(selectedView == 'list' ? Icons.show_chart : Icons.list),
                 onPressed: onViewChanged,
-                tooltip: selectedView == 'list' ? 'Pokaż wykres' : 'Pokaż listę',
+                tooltip: selectedView == 'list' ? 'Show chart' : 'Show list',
               ),
               IconButton(
                 icon: const Icon(Icons.refresh),
                 onPressed: isLoading ? null : onLoadHistory,
-                tooltip: 'Odśwież',
+                tooltip: 'Refresh',
               ),
             ],
           ),
@@ -880,7 +880,7 @@ class _HistoryTabContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isActive ? 'Sensor aktywny' : 'Sensor nieaktywny',
+                        isActive ? 'Sensor active' : 'Sensor inactive',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: statusColor.shade700,
@@ -908,7 +908,7 @@ class _HistoryTabContent extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'odczytów',
+                        'readings',
                         style: TextStyle(
                           fontSize: 10,
                           color: statusColor.shade700,
@@ -930,7 +930,7 @@ class _HistoryTabContent extends StatelessWidget {
                 const SizedBox(width: 6),
                 const Expanded(
                   child: Text(
-                    'Dexcom Share API udostępnia dane tylko z ostatnich 24 godzin.',
+                    'Dexcom Share API only provides data from the last 24 hours.',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppTheme.textSecondary,
@@ -952,10 +952,10 @@ class _HistoryTabContent extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          _buildTimeChip(3, '3 godz.'),
-          _buildTimeChip(6, '6 godz.'),
-          _buildTimeChip(12, '12 godz.'),
-          _buildTimeChip(24, '24 godz.'),
+          _buildTimeChip(3, '3 hrs'),
+          _buildTimeChip(6, '6 hrs'),
+          _buildTimeChip(12, '12 hrs'),
+          _buildTimeChip(24, '24 hrs'),
         ],
       ),
     );
@@ -1008,7 +1008,7 @@ class _HistoryTabContent extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Brak danych do wyświetlenia',
+              'No data to display',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -1016,7 +1016,7 @@ class _HistoryTabContent extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Połącz swoje konto Dexcom w ustawieniach, aby zobaczyć historię pomiarów',
+              'Connect your Dexcom account in settings to see measurement history',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary),
             ),
@@ -1026,7 +1026,7 @@ class _HistoryTabContent extends StatelessWidget {
                 context.push('/settings/dexcom');
               },
               icon: const Icon(Icons.link),
-              label: const Text('Połącz Dexcom'),
+              label: const Text('Connect Dexcom'),
             ),
           ],
         ),
@@ -1070,10 +1070,10 @@ class _HistoryTabContent extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildStatItem('Średnia', '${avg.toStringAsFixed(0)}', _getGlucoseColor(avg)),
+            _buildStatItem('Average', '${avg.toStringAsFixed(0)}', _getGlucoseColor(avg)),
             _buildStatItem('Min', '${min.toStringAsFixed(0)}', _getGlucoseColor(min)),
             _buildStatItem('Max', '${max.toStringAsFixed(0)}', _getGlucoseColor(max)),
-            _buildStatItem('W zakresie', '$inRangePercent%', AppTheme.glucoseNormal),
+            _buildStatItem('In Range', '$inRangePercent%', AppTheme.glucoseNormal),
           ],
         ),
       ),

@@ -19,7 +19,7 @@ class FirestoreService {
     try {
       await usersCollection.doc(user.id).set(user.toJson());
     } catch (e) {
-      throw 'Błąd podczas tworzenia użytkownika: ${e.toString()}';
+      throw 'Error creating user: ${e.toString()}';
     }
   }
 
@@ -32,7 +32,7 @@ class FirestoreService {
       }
       return null;
     } catch (e) {
-      throw 'Błąd podczas pobierania użytkownika: ${e.toString()}';
+      throw 'Error fetching user: ${e.toString()}';
     }
   }
 
@@ -41,7 +41,7 @@ class FirestoreService {
     try {
       await usersCollection.doc(user.id).update(user.toJson());
     } catch (e) {
-      throw 'Błąd podczas aktualizacji użytkownika: ${e.toString()}';
+      throw 'Error updating user: ${e.toString()}';
     }
   }
 
@@ -50,7 +50,7 @@ class FirestoreService {
     try {
       await usersCollection.doc(userId).delete();
     } catch (e) {
-      throw 'Błąd podczas usuwania użytkownika: ${e.toString()}';
+      throw 'Error deleting user: ${e.toString()}';
     }
   }
 
@@ -65,7 +65,7 @@ class FirestoreService {
           .map((doc) => User.fromJson(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw 'Błąd podczas pobierania pacjentów: ${e.toString()}';
+      throw 'Error fetching patients: ${e.toString()}';
     }
   }
 
@@ -81,7 +81,7 @@ class FirestoreService {
           .map((doc) => User.fromJson(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw 'Błąd podczas pobierania pacjentów: ${e.toString()}';
+      throw 'Error fetching patients: ${e.toString()}';
     }
   }
 
@@ -97,7 +97,7 @@ class FirestoreService {
       }
       return null;
     } catch (e) {
-      throw 'Błąd podczas pobierania lekarza: ${e.toString()}';
+      throw 'Error fetching doctor: ${e.toString()}';
     }
   }
 
@@ -106,7 +106,7 @@ class FirestoreService {
     try {
       await usersCollection.doc(patientId).update({'doctorId': doctorId});
     } catch (e) {
-      throw 'Błąd podczas przypisywania pacjenta do lekarza: ${e.toString()}';
+      throw 'Error assigning patient to doctor: ${e.toString()}';
     }
   }
 

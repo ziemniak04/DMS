@@ -61,7 +61,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Rejestracja'),
+        title: const Text('Registration'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -75,12 +75,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(
-                    labelText: 'Imię i nazwisko',
+                    labelText: 'Full Name',
                     prefixIcon: Icon(Icons.person_outlined),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Proszę podać imię i nazwisko';
+                      return 'Please enter your full name';
                     }
                     return null;
                   },
@@ -97,10 +97,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Proszę podać email';
+                      return 'Please enter your email';
                     }
                     if (!value.contains('@')) {
-                      return 'Proszę podać prawidłowy email';
+                      return 'Please enter a valid email';
                     }
                     return null;
                   },
@@ -112,7 +112,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
-                    labelText: 'Hasło',
+                    labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -127,10 +127,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Proszę podać hasło';
+                      return 'Please enter a password';
                     }
                     if (value.length < 6) {
-                      return 'Hasło musi mieć minimum 6 znaków';
+                      return 'Password must be at least 6 characters';
                     }
                     return null;
                   },
@@ -142,7 +142,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
-                    labelText: 'Potwierdź hasło',
+                    labelText: 'Confirm Password',
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -157,7 +157,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (value) {
                     if (value != _passwordController.text) {
-                      return 'Hasła nie są identyczne';
+                      return 'Passwords do not match';
                     }
                     return null;
                   },
@@ -166,7 +166,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Role Selection
                 Text(
-                  'Typ konta',
+                  'Account Type',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
@@ -174,7 +174,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     Expanded(
                       child: _RoleCard(
-                        title: 'Pacjent',
+                        title: 'Patient',
                         icon: Icons.person,
                         isSelected: _selectedRole == AppConstants.rolePatient,
                         onTap: () {
@@ -187,7 +187,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: _RoleCard(
-                        title: 'Lekarz',
+                        title: 'Doctor',
                         icon: Icons.medical_services,
                         isSelected: _selectedRole == AppConstants.roleDoctor,
                         onTap: () {
@@ -232,7 +232,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text('Zarejestruj się'),
+                          : const Text('Sign Up'),
                     );
                   },
                 ),
@@ -243,12 +243,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Masz już konto? ',
+                      'Already have an account? ',
                       style: TextStyle(color: AppTheme.textSecondary),
                     ),
                     TextButton(
                       onPressed: () => context.pop(),
-                      child: const Text('Zaloguj się'),
+                      child: const Text('Sign In'),
                     ),
                   ],
                 ),

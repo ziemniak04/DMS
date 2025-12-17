@@ -58,34 +58,34 @@ extension EventTypeExtension on EventType {
   String get label {
     switch (this) {
       case EventType.bloodGlucose:
-        return 'Stężenie glukozy we krwi';
+        return 'Blood Glucose';
       case EventType.insulin:
-        return 'Insulina';
+        return 'Insulin';
       case EventType.meal:
-        return 'Posiłek';
+        return 'Meal';
       case EventType.activity:
-        return 'Aktywność';
+        return 'Activity';
       case EventType.fastingGlucose:
-        return 'Glukoza na czczo';
+        return 'Fasting Glucose';
       case EventType.note:
-        return 'Notatka';
+        return 'Note';
     }
   }
 
   String get description {
     switch (this) {
       case EventType.bloodGlucose:
-        return 'Pomiar krwi z palca lub kalibracja';
+        return 'Finger prick measurement or calibration';
       case EventType.insulin:
-        return 'Dawka insuliny szybko lub długo działającej';
+        return 'Fast-acting or long-acting insulin dose';
       case EventType.meal:
-        return 'Spożyte węglowodany';
+        return 'Carbohydrates consumed';
       case EventType.activity:
-        return 'Czas trwania i intensywność';
+        return 'Duration and intensity';
       case EventType.fastingGlucose:
-        return 'Czas przebudzenia';
+        return 'Wake-up time measurement';
       case EventType.note:
-        return 'Dodaj informacje';
+        return 'Add information';
     }
   }
 

@@ -126,25 +126,25 @@ class FirebaseAuthService {
   String _handleAuthException(firebase_auth.FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':
-        return 'Nie znaleziono użytkownika z tym adresem email.';
+        return 'No user found with this email address.';
       case 'wrong-password':
-        return 'Nieprawidłowe hasło.';
+        return 'Invalid password.';
       case 'email-already-in-use':
-        return 'Ten adres email jest już używany.';
+        return 'This email address is already in use.';
       case 'invalid-email':
-        return 'Nieprawidłowy format adresu email.';
+        return 'Invalid email address format.';
       case 'weak-password':
-        return 'Hasło jest zbyt słabe. Użyj minimum 6 znaków.';
+        return 'Password is too weak. Use at least 6 characters.';
       case 'operation-not-allowed':
-        return 'Operacja nie jest dozwolona.';
+        return 'Operation not allowed.';
       case 'user-disabled':
-        return 'To konto zostało wyłączone.';
+        return 'This account has been disabled.';
       case 'too-many-requests':
-        return 'Zbyt wiele prób. Spróbuj ponownie później.';
+        return 'Too many attempts. Please try again later.';
       case 'network-request-failed':
-        return 'Błąd połączenia sieciowego.';
+        return 'Network connection error.';
       default:
-        return 'Wystąpił błąd: ${e.message}';
+        return 'An error occurred: ${e.message}';
     }
   }
 }

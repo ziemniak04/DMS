@@ -30,7 +30,7 @@ class AuthProvider extends ChangeNotifier {
           _currentUser = await _firestoreService.getUserById(firebaseUser.uid);
           notifyListeners();
         } catch (e) {
-          _error = 'Błąd podczas pobierania danych użytkownika';
+          _error = 'Error fetching user data';
           notifyListeners();
         }
       } else {
@@ -49,7 +49,7 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       if (email.isEmpty || password.isEmpty) {
-        _error = 'Email i hasło są wymagane';
+        _error = 'Email and password are required';
         _isLoading = false;
         notifyListeners();
         return false;
@@ -72,7 +72,7 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _error = 'Nie udało się zalogować';
+        _error = 'Login failed';
         _isLoading = false;
         notifyListeners();
         return false;
@@ -93,7 +93,7 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       if (email.isEmpty || password.isEmpty || name.isEmpty) {
-        _error = 'Wszystkie pola są wymagane';
+        _error = 'All fields are required';
         _isLoading = false;
         notifyListeners();
         return false;
@@ -118,7 +118,7 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _error = 'Nie udało się zarejestrować';
+        _error = 'Registration failed';
         _isLoading = false;
         notifyListeners();
         return false;
@@ -155,7 +155,7 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
         return true;
       } catch (e) {
-        _error = 'Błąd podczas pobierania danych użytkownika';
+        _error = 'Error fetching user data';
         notifyListeners();
         return false;
       }

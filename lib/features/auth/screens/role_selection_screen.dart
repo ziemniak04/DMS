@@ -17,14 +17,14 @@ class RoleSelectionScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Kim jesteś?',
+                'Who are you?',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Wybierz swój typ konta',
+                'Choose your account type',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: AppTheme.textSecondary,
                 ),
@@ -33,8 +33,8 @@ class RoleSelectionScreen extends StatelessWidget {
               
               // Patient Card
               _RoleSelectionCard(
-                title: 'Pacjent',
-                description: 'Monitoruj poziom glukozy i dziel się danymi z lekarzem',
+                title: 'Patient',
+                description: 'Monitor your glucose levels and share data with your doctor',
                 icon: Icons.person,
                 color: AppTheme.secondaryColor,
                 onTap: () => context.go('/patient'),
@@ -43,8 +43,8 @@ class RoleSelectionScreen extends StatelessWidget {
               
               // Doctor Card
               _RoleSelectionCard(
-                title: 'Lekarz',
-                description: 'Monitoruj pacjentów i analizuj ich dane zdrowotne',
+                title: 'Doctor',
+                description: 'Monitor patients and analyze their health data',
                 icon: Icons.medical_services,
                 color: AppTheme.primaryColor,
                 onTap: () => context.go('/doctor'),

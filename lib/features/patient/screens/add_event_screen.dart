@@ -39,7 +39,7 @@ class AddEventScreen extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    'Dodaj zdarzenie',
+                    'Add Event',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -197,7 +197,7 @@ class _EventFormSheetState extends State<_EventFormSheet> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Proszę podać wartość';
+                    return 'Please enter a value';
                   }
                   return null;
                 },
@@ -208,7 +208,7 @@ class _EventFormSheetState extends State<_EventFormSheet> {
               TextFormField(
                 controller: _notesController,
                 decoration: const InputDecoration(
-                  labelText: 'Notatka (opcjonalnie)',
+                  labelText: 'Notes (optional)',
                 ),
                 maxLines: 2,
               ),
@@ -217,7 +217,7 @@ class _EventFormSheetState extends State<_EventFormSheet> {
               // Save Button
               ElevatedButton(
                 onPressed: _saveEvent,
-                child: const Text('Zapisz'),
+                child: const Text('Save'),
               ),
             ],
           ),
@@ -230,15 +230,15 @@ class _EventFormSheetState extends State<_EventFormSheet> {
     switch (widget.eventType) {
       case EventType.bloodGlucose:
       case EventType.fastingGlucose:
-        return 'Poziom glukozy';
+        return 'Glucose Level';
       case EventType.insulin:
-        return 'Dawka insuliny';
+        return 'Insulin Dose';
       case EventType.meal:
-        return 'Węglowodany';
+        return 'Carbohydrates';
       case EventType.activity:
-        return 'Czas trwania';
+        return 'Duration';
       case EventType.note:
-        return 'Treść notatki';
+        return 'Note Content';
     }
   }
 
@@ -248,7 +248,7 @@ class _EventFormSheetState extends State<_EventFormSheet> {
       case EventType.fastingGlucose:
         return 'mg/dL';
       case EventType.insulin:
-        return 'jednostki';
+        return 'units';
       case EventType.meal:
         return 'g';
       case EventType.activity:
@@ -278,7 +278,7 @@ class _EventFormSheetState extends State<_EventFormSheet> {
       Navigator.of(context).pop();
       
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Zdarzenie zapisane')),
+        const SnackBar(content: Text('Event saved')),
       );
     }
   }
