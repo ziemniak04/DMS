@@ -16,7 +16,7 @@ class PatientProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profil'),
+        title: const Text('Profile'),
       ),
       body: Consumer<AuthProvider>(
         builder: (context, auth, child) {
@@ -39,7 +39,7 @@ class PatientProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      user?.name ?? 'Użytkownik',
+                      user?.name ?? 'User',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -55,7 +55,7 @@ class PatientProfileScreen extends StatelessWidget {
               
               // Settings Section
               const Text(
-                'Ustawienia',
+                'Settings',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -66,19 +66,19 @@ class PatientProfileScreen extends StatelessWidget {
               _buildMenuItem(
                 context,
                 icon: Icons.notifications_outlined,
-                title: 'Powiadomienia',
+                title: 'Notifications',
                 onTap: () => context.push('/settings/alerts'),
               ),
               _buildMenuItem(
                 context,
                 icon: Icons.settings_outlined,
-                title: 'Ustawienia aplikacji',
+                title: 'App Settings',
                 onTap: () => context.push('/settings'),
               ),
               _buildMenuItem(
                 context,
                 icon: Icons.help_outline,
-                title: 'Pomoc',
+                title: 'Help',
                 onTap: () {
                   // TODO: [PLACEHOLDER] Implement help section
                 },
@@ -86,7 +86,7 @@ class PatientProfileScreen extends StatelessWidget {
               _buildMenuItem(
                 context,
                 icon: Icons.info_outline,
-                title: 'O aplikacji',
+                title: 'About',
                 onTap: () {
                   showAboutDialog(
                     context: context,
@@ -108,7 +108,7 @@ class PatientProfileScreen extends StatelessWidget {
                   }
                 },
                 icon: const Icon(Icons.logout),
-                label: const Text('Wyloguj się'),
+                label: const Text('Sign Out'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.errorColor,
                   foregroundColor: Colors.white,

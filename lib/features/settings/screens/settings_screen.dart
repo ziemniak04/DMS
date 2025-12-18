@@ -24,15 +24,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ustawienia'),
+        title: const Text('Settings'),
       ),
       body: ListView(
         children: [
           // Display Section
-          _buildSectionHeader('Wyświetlanie'),
+          _buildSectionHeader('Display'),
           SwitchListTile(
-            title: const Text('Tryb ciemny'),
-            subtitle: const Text('Zmień wygląd aplikacji'),
+            title: const Text('Dark Mode'),
+            subtitle: const Text('Change app appearance'),
             value: _darkMode,
             onChanged: (value) {
               setState(() {
@@ -41,13 +41,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // TODO: [PLACEHOLDER] Implement dark mode
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Tryb ciemny - do zaimplementowania'),
+                  content: Text('Dark mode - to be implemented'),
                 ),
               );
             },
           ),
           ListTile(
-            title: const Text('Jednostka glukozy'),
+            title: const Text('Glucose Unit'),
             subtitle: Text(_glucoseUnit),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
@@ -56,10 +56,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           
           // Notifications Section
-          _buildSectionHeader('Powiadomienia'),
+          _buildSectionHeader('Notifications'),
           SwitchListTile(
-            title: const Text('Powiadomienia push'),
-            subtitle: const Text('Otrzymuj alerty o poziomie glukozy'),
+            title: const Text('Push Notifications'),
+            subtitle: const Text('Receive glucose level alerts'),
             value: _notifications,
             onChanged: (value) {
               setState(() {
@@ -69,63 +69,69 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           ListTile(
-            title: const Text('Ustawienia ostrzeżeń'),
-            subtitle: const Text('Progi glukozy i dźwięki'),
+            title: const Text('Alert Settings'),
+            subtitle: const Text('Glucose thresholds and sounds'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/settings/alerts'),
           ),
           
           // Data Section
-          _buildSectionHeader('Dane'),
+          _buildSectionHeader('Data'),
           ListTile(
-            title: const Text('Eksport danych'),
-            subtitle: const Text('Pobierz dane w formacie CSV'),
+            title: const Text('Dexcom Connection'),
+            subtitle: const Text('Connect Dexcom CGM sensor'),
+            trailing: const Icon(Icons.sensors),
+            onTap: () => context.push('/settings/dexcom'),
+          ),
+          ListTile(
+            title: const Text('Export Data'),
+            subtitle: const Text('Download data in CSV format'),
             trailing: const Icon(Icons.download),
             onTap: () {
               // TODO: [PLACEHOLDER] Implement data export
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Eksport danych - do zaimplementowania'),
+                  content: Text('Data export - to be implemented'),
                 ),
               );
             },
           ),
           ListTile(
-            title: const Text('Synchronizacja'),
-            subtitle: const Text('Ostatnia: nigdy'),
+            title: const Text('Sync'),
+            subtitle: const Text('Last: never'),
             trailing: const Icon(Icons.sync),
             onTap: () {
               // TODO: [PLACEHOLDER] Implement data sync
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Synchronizacja - do zaimplementowania'),
+                  content: Text('Sync - to be implemented'),
                 ),
               );
             },
           ),
           
           // About Section
-          _buildSectionHeader('Informacje'),
+          _buildSectionHeader('About'),
           ListTile(
-            title: const Text('Wersja aplikacji'),
+            title: const Text('App Version'),
             subtitle: const Text('1.0.0 (demo)'),
           ),
           ListTile(
-            title: const Text('Polityka prywatności'),
+            title: const Text('Privacy Policy'),
             trailing: const Icon(Icons.open_in_new),
             onTap: () {
               // TODO: [PLACEHOLDER] Open privacy policy
             },
           ),
           ListTile(
-            title: const Text('Regulamin'),
+            title: const Text('Terms of Service'),
             trailing: const Icon(Icons.open_in_new),
             onTap: () {
               // TODO: [PLACEHOLDER] Open terms of service
             },
           ),
           ListTile(
-            title: const Text('Licencje open source'),
+            title: const Text('Open Source Licenses'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               showLicensePage(context: context);
@@ -154,7 +160,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Jednostka glukozy'),
+        title: const Text('Glucose Unit'),
         content: StatefulBuilder(
           builder: (context, setDialogState) {
             return Column(
@@ -188,7 +194,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       // TODO: [PLACEHOLDER] Convert all glucose values
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Konwersja jednostek - do zaimplementowania'),
+                          content: Text('Unit conversion - to be implemented'),
                         ),
                       );
                     },

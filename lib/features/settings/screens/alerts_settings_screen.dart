@@ -30,20 +30,20 @@ class _AlertsSettingsScreenState extends State<AlertsSettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ostrzeżenia'),
+        title: const Text('Alerts'),
       ),
       body: ListView(
         children: [
           // Glucose Thresholds Section
-          _buildSectionHeader('Progi glukozy'),
+          _buildSectionHeader('Glucose Thresholds'),
           
           // Low Threshold
           ListTile(
-            title: const Text('Niski poziom glukozy'),
+            title: const Text('Low Glucose Level'),
             subtitle: Text('${_lowThreshold.toInt()} mg/dL'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _showThresholdDialog(
-              title: 'Niski poziom glukozy',
+              title: 'Low Glucose Level',
               currentValue: _lowThreshold,
               min: 50,
               max: 100,
@@ -57,11 +57,11 @@ class _AlertsSettingsScreenState extends State<AlertsSettingsScreen> {
           
           // High Threshold
           ListTile(
-            title: const Text('Wysoki poziom glukozy'),
+            title: const Text('High Glucose Level'),
             subtitle: Text('${_highThreshold.toInt()} mg/dL'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _showThresholdDialog(
-              title: 'Wysoki poziom glukozy',
+              title: 'High Glucose Level',
               currentValue: _highThreshold,
               min: 180,
               max: 350,
@@ -76,12 +76,12 @@ class _AlertsSettingsScreenState extends State<AlertsSettingsScreen> {
           const Divider(),
           
           // Alert Types Section
-          _buildSectionHeader('Typy ostrzeżeń'),
+          _buildSectionHeader('Alert Types'),
           
           SwitchListTile(
-            title: const Text('Pilne niski poziom'),
+            title: const Text('Urgent Low'),
             subtitle: Text(
-              'Powiadomienie gdy glukoza < ${(_lowThreshold - 15).toInt()} mg/dL',
+              'Notification when glucose < ${(_lowThreshold - 15).toInt()} mg/dL',
             ),
             secondary: Container(
               width: 40,
@@ -104,9 +104,9 @@ class _AlertsSettingsScreenState extends State<AlertsSettingsScreen> {
           ),
           
           SwitchListTile(
-            title: const Text('Niski poziom'),
+            title: const Text('Low'),
             subtitle: Text(
-              'Powiadomienie gdy glukoza < ${_lowThreshold.toInt()} mg/dL',
+              'Notification when glucose < ${_lowThreshold.toInt()} mg/dL',
             ),
             secondary: Container(
               width: 40,
@@ -129,9 +129,9 @@ class _AlertsSettingsScreenState extends State<AlertsSettingsScreen> {
           ),
           
           SwitchListTile(
-            title: const Text('Wysoki poziom'),
+            title: const Text('High'),
             subtitle: Text(
-              'Powiadomienie gdy glukoza > ${_highThreshold.toInt()} mg/dL',
+              'Notification when glucose > ${_highThreshold.toInt()} mg/dL',
             ),
             secondary: Container(
               width: 40,
@@ -154,8 +154,8 @@ class _AlertsSettingsScreenState extends State<AlertsSettingsScreen> {
           ),
           
           SwitchListTile(
-            title: const Text('Utrata sygnału'),
-            subtitle: const Text('Powiadomienie gdy brak danych z sensora'),
+            title: const Text('Signal Loss'),
+            subtitle: const Text('Notification when no data from sensor'),
             secondary: Container(
               width: 40,
               height: 40,
@@ -179,11 +179,11 @@ class _AlertsSettingsScreenState extends State<AlertsSettingsScreen> {
           const Divider(),
           
           // Sound & Vibration Section
-          _buildSectionHeader('Dźwięk i wibracja'),
+          _buildSectionHeader('Sound & Vibration'),
           
           SwitchListTile(
-            title: const Text('Dźwięk'),
-            subtitle: const Text('Odtwarzaj dźwięk przy ostrzeżeniach'),
+            title: const Text('Sound'),
+            subtitle: const Text('Play sound for alerts'),
             value: _soundEnabled,
             onChanged: (value) {
               setState(() {
@@ -193,8 +193,8 @@ class _AlertsSettingsScreenState extends State<AlertsSettingsScreen> {
           ),
           
           SwitchListTile(
-            title: const Text('Wibracja'),
-            subtitle: const Text('Wibruj przy ostrzeżeniach'),
+            title: const Text('Vibration'),
+            subtitle: const Text('Vibrate for alerts'),
             value: _vibrationEnabled,
             onChanged: (value) {
               setState(() {
@@ -205,14 +205,14 @@ class _AlertsSettingsScreenState extends State<AlertsSettingsScreen> {
           
           if (_soundEnabled)
             ListTile(
-              title: const Text('Dźwięk ostrzeżenia'),
-              subtitle: const Text('Domyślny'),
+              title: const Text('Alert Sound'),
+              subtitle: const Text('Default'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 // TODO: [PLACEHOLDER] Implement sound picker
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Wybór dźwięku - do zaimplementowania'),
+                    content: Text('Sound selection - to be implemented'),
                   ),
                 );
               },
@@ -228,12 +228,12 @@ class _AlertsSettingsScreenState extends State<AlertsSettingsScreen> {
                 // TODO: [PLACEHOLDER] Save settings
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Ustawienia zapisane'),
+                    content: Text('Settings saved'),
                   ),
                 );
                 Navigator.pop(context);
               },
-              child: const Text('Zapisz ustawienia'),
+              child: const Text('Save Settings'),
             ),
           ),
         ],
@@ -303,14 +303,14 @@ class _AlertsSettingsScreenState extends State<AlertsSettingsScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Anuluj'),
+                child: const Text('Cancel'),
               ),
               ElevatedButton(
                 onPressed: () {
                   onChanged(tempValue);
                   Navigator.pop(context);
                 },
-                child: const Text('Zapisz'),
+                child: const Text('Save'),
               ),
             ],
           );

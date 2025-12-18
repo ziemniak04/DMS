@@ -12,6 +12,7 @@ import 'package:dms_app/features/doctor/screens/doctor_patients_screen.dart';
 import 'package:dms_app/features/doctor/screens/patient_detail_screen.dart';
 import 'package:dms_app/features/settings/screens/settings_screen.dart';
 import 'package:dms_app/features/settings/screens/alerts_settings_screen.dart';
+import 'package:dms_app/features/settings/screens/dexcom_connection_screen.dart';
 import 'package:dms_app/features/patient/screens/add_event_screen.dart';
 
 /// App Router Configuration
@@ -100,6 +101,11 @@ class AppRouter {
             path: 'alerts',
             name: 'alertsSettings',
             builder: (context, state) => const AlertsSettingsScreen(),
+          ),
+          GoRoute(
+            path: 'dexcom',
+            name: 'dexcomConnection',
+            builder: (context, state) => const DexcomConnectionScreen(),
           ),
         ],
       ),

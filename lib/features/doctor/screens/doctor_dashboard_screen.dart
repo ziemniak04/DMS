@@ -33,12 +33,12 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                 // TODO: [PLACEHOLDER] Add new patient invitation
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Zaproszenie pacjenta - do zaimplementowania'),
+                    content: Text('Patient invitation - to be implemented'),
                   ),
                 );
               },
               icon: const Icon(Icons.person_add),
-              label: const Text('Dodaj pacjenta'),
+              label: const Text('Add Patient'),
             )
           : null,
       bottomNavigationBar: _buildBottomNav(),
@@ -73,7 +73,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                   Consumer<AuthProvider>(
                     builder: (context, auth, child) {
                       return Text(
-                        'Witaj, ${auth.currentUser?.name ?? "Doktor"}',
+                        'Welcome, ${auth.currentUser?.name ?? "Doctor"}',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -81,7 +81,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                     },
                   ),
                   Text(
-                    'Twoi pacjenci',
+                    'Your patients',
                     style: TextStyle(color: AppTheme.textSecondary),
                   ),
                 ],
@@ -104,7 +104,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
             children: [
               Expanded(
                 child: _StatCard(
-                  title: 'Pacjenci',
+                  title: 'Patients',
                   value: '12',
                   icon: Icons.people,
                   color: AppTheme.primaryColor,
@@ -113,7 +113,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               const SizedBox(width: 16),
               Expanded(
                 child: _StatCard(
-                  title: 'Ostrzeżenia',
+                  title: 'Alerts',
                   value: '3',
                   icon: Icons.warning_amber,
                   color: AppTheme.errorColor,
@@ -128,7 +128,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'Lista pacjentów',
+            'Patient List',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -160,7 +160,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         Padding(
           padding: const EdgeInsets.all(16),
           child: Text(
-            'Ostrzeżenia',
+            'Alerts',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -172,20 +172,20 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
             children: [
               _AlertCard(
                 patientName: 'Anna Nowak',
-                message: 'Niski poziom glukozy: 58 mg/dL',
-                time: '5 min temu',
+                message: 'Low glucose level: 58 mg/dL',
+                time: '5 min ago',
                 severity: AlertSeverity.high,
               ),
               _AlertCard(
                 patientName: 'Jan Kowalski',
-                message: 'Wysoki poziom glukozy: 285 mg/dL',
-                time: '15 min temu',
+                message: 'High glucose level: 285 mg/dL',
+                time: '15 min ago',
                 severity: AlertSeverity.medium,
               ),
               _AlertCard(
                 patientName: 'Maria Wiśniewska',
-                message: 'Brak danych z sensora od 2 godzin',
-                time: '2 godz. temu',
+                message: 'No sensor data for 2 hours',
+                time: '2 hrs ago',
                 severity: AlertSeverity.low,
               ),
             ],
@@ -202,7 +202,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Profil',
+            'Profile',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -232,7 +232,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              auth.currentUser?.name ?? 'Lekarz',
+                              auth.currentUser?.name ?? 'Doctor',
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -253,7 +253,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: const Text(
-                                'Lekarz',
+                                'Doctor',
                                 style: TextStyle(
                                   color: AppTheme.primaryColor,
                                   fontSize: 12,
@@ -274,17 +274,17 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
           // Settings
           _buildMenuItem(
             icon: Icons.settings_outlined,
-            title: 'Ustawienia',
+            title: 'Settings',
             onTap: () => context.push('/settings'),
           ),
           _buildMenuItem(
             icon: Icons.notifications_outlined,
-            title: 'Powiadomienia',
+            title: 'Notifications',
             onTap: () => context.push('/settings/alerts'),
           ),
           _buildMenuItem(
             icon: Icons.help_outline,
-            title: 'Pomoc',
+            title: 'Help',
             onTap: () {},
           ),
           
@@ -299,7 +299,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               }
             },
             icon: const Icon(Icons.logout),
-            label: const Text('Wyloguj się'),
+            label: const Text('Sign Out'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
               foregroundColor: Colors.white,
@@ -336,15 +336,15 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.people_outline),
-          label: 'Pacjenci',
+          label: 'Patients',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.warning_amber_outlined),
-          label: 'Ostrzeżenia',
+          label: 'Alerts',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
-          label: 'Profil',
+          label: 'Profile',
         ),
       ],
     );
@@ -357,28 +357,28 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       'name': 'Anna Nowak',
       'lastReading': 125,
       'status': 'normal',
-      'lastUpdate': '5 min temu',
+      'lastUpdate': '5 min ago',
     },
     {
       'id': 'patient_2',
       'name': 'Jan Kowalski',
       'lastReading': 285,
       'status': 'high',
-      'lastUpdate': '10 min temu',
+      'lastUpdate': '10 min ago',
     },
     {
       'id': 'patient_3',
       'name': 'Maria Wiśniewska',
       'lastReading': 98,
       'status': 'normal',
-      'lastUpdate': '15 min temu',
+      'lastUpdate': '15 min ago',
     },
     {
       'id': 'patient_4',
       'name': 'Piotr Zieliński',
       'lastReading': 58,
       'status': 'low',
-      'lastUpdate': '20 min temu',
+      'lastUpdate': '20 min ago',
     },
   ];
 }

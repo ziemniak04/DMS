@@ -42,7 +42,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dane pacjenta'),
+        title: const Text('Patient Data'),
         actions: [
           IconButton(
             icon: const Icon(Icons.message_outlined),
@@ -50,7 +50,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
               // TODO: [PLACEHOLDER] Implement messaging
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Wiadomości - do zaimplementowania'),
+                  content: Text('Messages - to be implemented'),
                 ),
               );
             },
@@ -88,12 +88,12 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           // TODO: [PLACEHOLDER] Add note/recommendation
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Dodawanie notatki - do zaimplementowania'),
+              content: Text('Adding note - to be implemented'),
             ),
           );
         },
         icon: const Icon(Icons.note_add),
-        label: const Text('Dodaj notatkę'),
+        label: const Text('Add Note'),
       ),
     );
   }
@@ -147,7 +147,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     ),
                     const SizedBox(width: 4),
                     const Text(
-                      'Sensor aktywny',
+                      'Sensor active',
                       style: TextStyle(fontSize: 12),
                     ),
                   ],
@@ -171,7 +171,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
             children: [
               Expanded(
                 child: _StatCard(
-                  title: 'Średnia',
+                  title: 'Average',
                   value: '${stats['average']?.toInt() ?? 0}',
                   unit: 'mg/dL',
                 ),
@@ -179,7 +179,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: _StatCard(
-                  title: 'W zakresie',
+                  title: 'In Range',
                   value: '${stats['inRange']?.toInt() ?? 0}',
                   unit: '%',
                 ),
@@ -216,7 +216,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Poziom glukozy',
+                    'Glucose Level',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -281,7 +281,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Ostatnie zdarzenia',
+            'Recent Events',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -292,22 +292,22 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.medication, color: AppTheme.primaryColor),
-              title: const Text('Insulina - 10 jednostek'),
-              subtitle: const Text('2 godziny temu'),
+              title: const Text('Insulin - 10 units'),
+              subtitle: const Text('2 hours ago'),
             ),
           ),
           Card(
             child: ListTile(
               leading: const Icon(Icons.restaurant, color: AppTheme.secondaryColor),
-              title: const Text('Posiłek - 45g węglowodanów'),
-              subtitle: const Text('2 godziny temu'),
+              title: const Text('Meal - 45g carbs'),
+              subtitle: const Text('2 hours ago'),
             ),
           ),
           Card(
             child: ListTile(
               leading: const Icon(Icons.directions_run, color: AppTheme.warningColor),
-              title: const Text('Aktywność - 30 min'),
-              subtitle: const Text('5 godzin temu'),
+              title: const Text('Activity - 30 min'),
+              subtitle: const Text('5 hours ago'),
             ),
           ),
         ],

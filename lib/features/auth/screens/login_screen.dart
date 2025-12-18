@@ -50,6 +50,72 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _showPasswordResetDialog(BuildContext context) {
+    final emailController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Reset Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Enter your email address and we will send you a password reset link.'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final email = emailController.text.trim();
+              if (email.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter an email address')),
+                );
+                return;
+              }
+
+              Navigator.of(dialogContext).pop();
+
+              final authProvider = context.read<AuthProvider>();
+              final success = await authProvider.sendPasswordResetEmail(email);
+
+              if (context.mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Password reset link has been sent to $email'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(authProvider.error ?? 'An error occurred'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Send'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Proszę podać email';
+                        return 'Please enter your email';
                       }
                       return null;
                     },
@@ -109,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
-                      labelText: 'Hasło',
+                      labelText: 'Password',
                       prefixIcon: const Icon(Icons.lock_outlined),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -124,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Proszę podać hasło';
+                        return 'Please enter your password';
                       }
                       return null;
                     },
@@ -135,15 +201,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {
-                        // TODO: [PLACEHOLDER] Implement password reset
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Resetowanie hasła - do zaimplementowania'),
-                          ),
-                        );
-                      },
-                      child: const Text('Zapomniałeś hasła?'),
+                      onPressed: () => _showPasswordResetDialog(context),
+                      child: const Text('Forgot password?'),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -179,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   color: Colors.white,
                                 ),
                               )
-                            : const Text('Zaloguj się'),
+                            : const Text('Sign In'),
                       );
                     },
                   ),
@@ -192,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
-                          'lub',
+                          'or',
                           style: TextStyle(color: AppTheme.textSecondary),
                         ),
                       ),
@@ -207,12 +266,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       // TODO: [PLACEHOLDER] Implement Google Sign-In
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Google Sign-In - do zaimplementowania'),
+                          content: Text('Google Sign-In - to be implemented'),
                         ),
                       );
                     },
                     icon: const Icon(Icons.g_mobiledata, size: 24),
-                    label: const Text('Kontynuuj z Google'),
+                    label: const Text('Continue with Google'),
                   ),
                   const SizedBox(height: 24),
 
@@ -221,12 +280,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Nie masz konta? ',
+                        'Don\'t have an account? ',
                         style: TextStyle(color: AppTheme.textSecondary),
                       ),
                       TextButton(
                         onPressed: () => context.push('/register'),
-                        child: const Text('Zarejestruj się'),
+                        child: const Text('Sign Up'),
                       ),
                     ],
                   ),
@@ -248,9 +307,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: AppTheme.primaryColor,
                           ),
                         ),
-                        const Text('Pacjent: patient@demo.com'),
-                        const Text('Lekarz: doctor@demo.com'),
-                        const Text('Hasło: dowolne'),
+                        const Text('Patient: patient@demo.com'),
+                        const Text('Doctor: doctor@demo.com'),
+                        const Text('Password: any'),
                       ],
                     ),
                   ),

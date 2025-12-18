@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dms_app/models/user.dart';
 import 'package:dms_app/core/constants/app_constants.dart';
+import 'package:dms_app/services/firebase_auth_service.dart';
+import 'package:dms_app/services/firestore_service.dart';
 
 /// Authentication Service Provider
-/// 
-/// TODO: [PLACEHOLDER] Replace mock authentication with Firebase Auth
-/// TODO: [PLACEHOLDER] Add Google Sign-In
-/// TODO: [PLACEHOLDER] Add Apple Sign-In
-/// TODO: [PLACEHOLDER] Add password reset functionality
-/// TODO: [PLACEHOLDER] Add email verification
+///
+/// Manages user authentication state using Firebase Auth
 class AuthProvider extends ChangeNotifier {
+  final FirebaseAuthService _authService = FirebaseAuthService();
+  final FirestoreService _firestoreService = FirestoreService();
+
   User? _currentUser;
   bool _isLoading = false;
   String? _error;
@@ -20,17 +21,33 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _currentUser != null;
   String? get error => _error;
 
-  /// Mock login - replace with Firebase Auth
+  AuthProvider() {
+    // Listen to auth state changes
+    _authService.authStateChanges.listen((firebaseUser) async {
+      if (firebaseUser != null) {
+        // User is signed in, fetch user data from Firestore
+        try {
+          _currentUser = await _firestoreService.getUserById(firebaseUser.uid);
+          notifyListeners();
+        } catch (e) {
+          _error = 'Error fetching user data';
+          notifyListeners();
+        }
+      } else {
+        // User is signed out
+        _currentUser = null;
+        notifyListeners();
+      }
+    });
+  }
+
+  /// Login with email and password
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      // TODO: [PLACEHOLDER] Replace with Firebase Auth signInWithEmailAndPassword
-      await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
-      
-      // Mock validation
       if (email.isEmpty || password.isEmpty) {
         _error = 'Email and password are required';
         _isLoading = false;
@@ -38,45 +55,43 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
 
-      // Create mock user based on email pattern
-      final isDoctor = email.contains('doctor') || email.contains('dr');
-      _currentUser = User(
-        id: 'mock_user_${DateTime.now().millisecondsSinceEpoch}',
+      _currentUser = await _authService.signInWithEmailAndPassword(
         email: email,
-        name: isDoctor ? 'Dr. Jan Kowalski' : 'Anna Nowak',
-        role: isDoctor ? AppConstants.roleDoctor : AppConstants.rolePatient,
-        createdAt: DateTime.now(),
+        password: password,
       );
 
-      // Save login state
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(AppConstants.keyIsLoggedIn, true);
-      await prefs.setString(AppConstants.keyUserRole, _currentUser!.role);
-      await prefs.setString(AppConstants.keyUserId, _currentUser!.id);
-      await prefs.setString(AppConstants.keyUserName, _currentUser!.name);
+      if (_currentUser != null) {
+        // Save login state
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool(AppConstants.keyIsLoggedIn, true);
+        await prefs.setString(AppConstants.keyUserRole, _currentUser!.role);
+        await prefs.setString(AppConstants.keyUserId, _currentUser!.id);
+        await prefs.setString(AppConstants.keyUserName, _currentUser!.name);
 
-      _isLoading = false;
-      notifyListeners();
-      return true;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = 'Login failed';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
     } catch (e) {
-      _error = 'Login failed: ${e.toString()}';
+      _error = e.toString();
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  /// Mock registration - replace with Firebase Auth
+  /// Register with email and password
   Future<bool> register(String email, String password, String name, String role) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      // TODO: [PLACEHOLDER] Replace with Firebase Auth createUserWithEmailAndPassword
-      // TODO: [PLACEHOLDER] Save user data to Firestore
-      await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
-
       if (email.isEmpty || password.isEmpty || name.isEmpty) {
         _error = 'All fields are required';
         _isLoading = false;
@@ -84,26 +99,32 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
 
-      _currentUser = User(
-        id: 'mock_user_${DateTime.now().millisecondsSinceEpoch}',
+      _currentUser = await _authService.registerWithEmailAndPassword(
         email: email,
+        password: password,
         name: name,
         role: role,
-        createdAt: DateTime.now(),
       );
 
-      // Save login state
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(AppConstants.keyIsLoggedIn, true);
-      await prefs.setString(AppConstants.keyUserRole, role);
-      await prefs.setString(AppConstants.keyUserId, _currentUser!.id);
-      await prefs.setString(AppConstants.keyUserName, name);
+      if (_currentUser != null) {
+        // Save login state
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool(AppConstants.keyIsLoggedIn, true);
+        await prefs.setString(AppConstants.keyUserRole, role);
+        await prefs.setString(AppConstants.keyUserId, _currentUser!.id);
+        await prefs.setString(AppConstants.keyUserName, name);
 
-      _isLoading = false;
-      notifyListeners();
-      return true;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = 'Registration failed';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
     } catch (e) {
-      _error = 'Registration failed: ${e.toString()}';
+      _error = e.toString();
       _isLoading = false;
       notifyListeners();
       return false;
@@ -112,38 +133,54 @@ class AuthProvider extends ChangeNotifier {
 
   /// Logout
   Future<void> logout() async {
-    // TODO: [PLACEHOLDER] Add Firebase signOut
+    await _authService.signOut();
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(AppConstants.keyIsLoggedIn);
     await prefs.remove(AppConstants.keyUserRole);
     await prefs.remove(AppConstants.keyUserId);
     await prefs.remove(AppConstants.keyUserName);
-    
+
     _currentUser = null;
     notifyListeners();
   }
 
-  /// Check if user is logged in from SharedPreferences
+  /// Check if user is logged in
   Future<bool> checkAuthState() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isLoggedIn = prefs.getBool(AppConstants.keyIsLoggedIn) ?? false;
-    
-    if (isLoggedIn) {
-      // TODO: [PLACEHOLDER] Fetch user data from Firebase
-      final role = prefs.getString(AppConstants.keyUserRole) ?? AppConstants.rolePatient;
-      final userId = prefs.getString(AppConstants.keyUserId) ?? '';
-      final userName = prefs.getString(AppConstants.keyUserName) ?? '';
-      
-      _currentUser = User(
-        id: userId,
-        email: 'restored@example.com',
-        name: userName,
-        role: role,
-      );
-      notifyListeners();
+    final firebaseUser = _authService.currentFirebaseUser;
+
+    if (firebaseUser != null) {
+      try {
+        _currentUser = await _firestoreService.getUserById(firebaseUser.uid);
+        notifyListeners();
+        return true;
+      } catch (e) {
+        _error = 'Error fetching user data';
+        notifyListeners();
+        return false;
+      }
     }
-    
-    return isLoggedIn;
+
+    return false;
+  }
+
+  /// Send password reset email
+  Future<bool> sendPasswordResetEmail(String email) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _authService.sendPasswordResetEmail(email);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   void clearError() {
