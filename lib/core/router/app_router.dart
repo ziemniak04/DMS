@@ -13,6 +13,7 @@ import 'package:dms_app/features/doctor/screens/patient_detail_screen.dart';
 import 'package:dms_app/features/settings/screens/settings_screen.dart';
 import 'package:dms_app/features/settings/screens/alerts_settings_screen.dart';
 import 'package:dms_app/features/settings/screens/dexcom_connection_screen.dart';
+import 'package:dms_app/features/auth/screens/splash_screen.dart';
 import 'package:dms_app/features/patient/screens/add_event_screen.dart';
 
 /// App Router Configuration
@@ -21,10 +22,15 @@ import 'package:dms_app/features/patient/screens/add_event_screen.dart';
 /// TODO: [PLACEHOLDER] Add deep linking support
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/',
     debugLogDiagnostics: true,
     routes: [
       // Auth routes
+      GoRoute(
+        path: '/',
+        name: 'splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: '/login',
         name: 'login',
