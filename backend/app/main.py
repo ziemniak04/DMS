@@ -8,8 +8,10 @@ from contextlib import asynccontextmanager
 import logging
 
 from app.config import get_settings
-from app.routers import health, dexcom
+from app.routers import health, dexcom, sync
 from app.services.dexcom_api import DexcomAPIError, RateLimitError
+from app.services.firestore_service import FirestoreService
+from app.services.job_scheduler import scheduler
 from app.database import init_db
 
 # Configure logging
@@ -31,6 +33,16 @@ async def lifespan(app: FastAPI):
     logger.info(f"Dexcom environment: {settings.DEXCOM_ENVIRONMENT}")
     logger.info(f"Dexcom base URL: {settings.get_dexcom_base_url()}")
 
+    # Initialize Firestore
+    try:
+        logger.info("Initializing Firestore...")
+        firestore_service = FirestoreService()
+        firestore_service.initialize()
+        logger.info("Firestore initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize Firestore: {e}")
+        logger.warning("Application will continue without Firestore functionality")
+
     # Initialize database tables
     if settings.DATABASE_URL:
         try:
@@ -43,10 +55,24 @@ async def lifespan(app: FastAPI):
     else:
         logger.warning("DATABASE_URL not configured. Database functionality disabled.")
 
+    # Start job scheduler
+    try:
+        scheduler.start()
+        logger.info("Background job scheduler started")
+    except Exception as e:
+        logger.error(f"Failed to start job scheduler: {e}")
+        logger.warning("Application will continue without background jobs")
+
     yield
 
     # Shutdown
     logger.info("Shutting down DMS Backend API")
+    try:
+        scheduler.stop()
+        logger.info("Job scheduler stopped")
+    except Exception as e:
+        logger.error(f"Error stopping scheduler: {e}")
+
 
 
 # Create FastAPI app
@@ -102,6 +128,7 @@ async def rate_limit_error_handler(request: Request, exc: RateLimitError):
 # Include routers
 app.include_router(health.router)
 app.include_router(dexcom.router)
+app.include_router(sync.router)
 
 
 # Request logging middleware

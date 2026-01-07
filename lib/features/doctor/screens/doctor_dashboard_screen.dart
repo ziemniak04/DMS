@@ -23,7 +23,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: _buildBody(),
       ),

@@ -141,19 +141,39 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
     if (_historyResult == null) return const SizedBox.shrink();
 
     final isActive = _historyResult!.sensorActive;
-    final statusColor = isActive ? Colors.green : Colors.orange;
+    final statusColor = isActive ? AppTheme.glucoseNormal : AppTheme.warningColor;
+    final bgColor = isActive ? AppTheme.glucoseNormal : AppTheme.warningColor;
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.all(16),
-      color: statusColor.withValues(alpha: 0.1),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            bgColor.withValues(alpha: 0.15),
+            bgColor.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: bgColor.withValues(alpha: 0.3), width: 1),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(
-              isActive ? Icons.sensors : Icons.sensors_off,
-              color: statusColor,
-              size: 32,
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                isActive ? Icons.sensors : Icons.sensors_off,
+                color: statusColor,
+                size: 28,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -161,10 +181,10 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isActive ? 'Sensor active' : 'Sensor inactive',
+                    isActive ? 'Sensor Active' : 'Sensor Inactive',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: statusColor.shade700,
+                      color: statusColor,
                       fontSize: 16,
                     ),
                   ),
@@ -172,7 +192,7 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
                   Text(
                     _historyResult!.message,
                     style: TextStyle(
-                      color: statusColor.shade700,
+                      color: statusColor.withValues(alpha: 0.8),
                       fontSize: 12,
                     ),
                   ),
@@ -181,7 +201,7 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
                     Text(
                       'Last reading: ${DateFormat('dd.MM.yyyy HH:mm').format(_historyResult!.lastReadingTime!)}',
                       style: TextStyle(
-                        color: statusColor.shade700,
+                        color: statusColor.withValues(alpha: 0.8),
                         fontSize: 12,
                       ),
                     ),
@@ -190,24 +210,32 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
               ),
             ),
             if (_historyResult!.hasData)
-              Column(
-                children: [
-                  Text(
-                    '${_historyResult!.readings.length}',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: statusColor.shade700,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      '${_historyResult!.readings.length}',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: statusColor,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'readings',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: statusColor.shade700,
+                    Text(
+                      'readings',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: statusColor.withValues(alpha: 0.8),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
           ],
         ),
@@ -234,21 +262,37 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
     final isSelected = _selectedHours == hours;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: isSelected,
-        onSelected: (selected) {
-          if (selected && !_isLoading) {
-            setState(() {
-              _selectedHours = hours;
-            });
-            _loadHistory();
-          }
-        },
-        selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
-        labelStyle: TextStyle(
-          color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+          border: Border.all(
+            color: isSelected ? AppTheme.primaryColor : AppTheme.primaryColor.withValues(alpha: 0.5),
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _isLoading ? null : () {
+              setState(() {
+                _selectedHours = hours;
+              });
+              _loadHistory();
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : AppTheme.primaryColor,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -363,43 +407,72 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
     final inRange = values.where((v) => v >= 70 && v <= 180).length;
     final inRangePercent = (inRange / values.length * 100).toStringAsFixed(0);
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.primaryColor.withValues(alpha: 0.08),
+            AppTheme.secondaryColor.withValues(alpha: 0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.primaryColor.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildStatItem('Average', '${avg.toStringAsFixed(0)} mg/dL', _getGlucoseColor(avg)),
-            _buildStatItem('Min', '${min.toStringAsFixed(0)} mg/dL', _getGlucoseColor(min)),
-            _buildStatItem('Max', '${max.toStringAsFixed(0)} mg/dL', _getGlucoseColor(max)),
-            _buildStatItem('In Range', '$inRangePercent%', AppTheme.glucoseNormal),
+            _buildStatItem('Average', '${avg.toStringAsFixed(0)}', _getGlucoseColor(avg)),
+            _buildStatItemDivider(),
+            _buildStatItem('Min', '${min.toStringAsFixed(0)}', _getGlucoseColor(min)),
+            _buildStatItemDivider(),
+            _buildStatItem('Max', '${max.toStringAsFixed(0)}', _getGlucoseColor(max)),
+            _buildStatItemDivider(),
+            _buildStatItem('Range', '$inRangePercent%', AppTheme.glucoseNormal),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildStatItemDivider() {
+    return Container(
+      width: 1,
+      height: 40,
+      color: AppTheme.primaryColor.withValues(alpha: 0.2),
+    );
+  }
+
   Widget _buildStatItem(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: color,
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppTheme.textSecondary,
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -445,15 +518,29 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
   Widget _buildReadingTile(GlucoseReading reading) {
     final color = _getGlucoseColor(reading.value);
     
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.05),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         leading: Container(
-          width: 48,
-          height: 48,
+          width: 56,
+          height: 56,
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.2),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                color.withValues(alpha: 0.25),
+                color.withValues(alpha: 0.1),
+              ],
+            ),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
           ),
           child: Center(
             child: Text(
@@ -461,34 +548,58 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: color,
-                fontSize: 16,
+                fontSize: 18,
               ),
             ),
           ),
         ),
         title: Row(
           children: [
-            Text(
-              '${reading.value.toStringAsFixed(0)} mg/dL',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+            Expanded(
+              child: Text(
+                '${reading.value.toStringAsFixed(0)} mg/dL',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: color,
+                ),
+              ),
             ),
             const SizedBox(width: 8),
-            Icon(
-              _getTrendIcon(reading.trend),
-              size: 20,
-              color: color,
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                _getTrendIcon(reading.trend),
+                size: 20,
+                color: color,
+              ),
             ),
           ],
         ),
-        subtitle: Text(
-          DateFormat('HH:mm').format(reading.timestamp),
-          style: const TextStyle(color: AppTheme.textSecondary),
-        ),
-        trailing: Text(
-          _formatTimestamp(reading.timestamp),
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppTheme.textSecondary,
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                DateFormat('HH:mm').format(reading.timestamp),
+                style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                _formatTimestamp(reading.timestamp),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
           ),
         ),
       ),
