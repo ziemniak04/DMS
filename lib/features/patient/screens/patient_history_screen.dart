@@ -8,6 +8,9 @@ import 'package:dms_app/providers/auth_provider.dart';
 import 'package:dms_app/models/glucose_reading.dart';
 import 'package:dms_app/services/dexcom_service.dart';
 import 'package:dms_app/widgets/glucose_chart.dart';
+import 'package:dms_app/widgets/glucose_statistics_card.dart';
+import 'package:dms_app/widgets/period_analysis_card.dart';
+import 'package:dms_app/widgets/daily_pattern_card.dart';
 
 /// Patient History Screen
 /// 
@@ -142,7 +145,7 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
 
     return Card(
       margin: const EdgeInsets.all(16),
-      color: statusColor.withOpacity(0.1),
+      color: statusColor.withValues(alpha: 0.1),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -242,7 +245,7 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
             _loadHistory();
           }
         },
-        selectedColor: AppTheme.primaryColor.withOpacity(0.2),
+        selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
         labelStyle: TextStyle(
           color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -313,21 +316,40 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
 
   Widget _buildChartView() {
     final readings = _historyResult!.readings;
-    
-    return Column(
-      children: [
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: GlucoseChart(
-              readings: readings,
-              hoursRange: _selectedHours,
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          SizedBox(
+            height: 300,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: GlucoseChart(
+                readings: readings,
+                hoursRange: _selectedHours,
+              ),
             ),
           ),
-        ),
-        // Statistics summary
-        _buildStatisticsCard(readings),
-      ],
+          // Statistics summary
+          _buildStatisticsCard(readings),
+          // Enhanced statistics
+          GlucoseStatisticsCard(
+            readings: readings,
+            timeRangeLabel: _selectedHours == 24 ? '24 hrs' : '$_selectedHours hrs',
+          ),
+          // Period analysis
+          PeriodAnalysisCard(
+            readings: readings,
+            timeRangeLabel: _selectedHours == 24 ? '24 hrs' : '$_selectedHours hrs',
+          ),
+          // Daily pattern
+          DailyPatternCard(
+            readings: readings,
+            timeRangeLabel: _selectedHours == 24 ? '24 hrs' : '$_selectedHours hrs',
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
     );
   }
 
@@ -430,7 +452,7 @@ class _PatientHistoryScreenState extends State<PatientHistoryScreen> {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(

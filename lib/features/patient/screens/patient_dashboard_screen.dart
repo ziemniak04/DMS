@@ -5,6 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:dms_app/providers/glucose_provider.dart';
 import 'package:dms_app/providers/auth_provider.dart';
 import 'package:dms_app/widgets/glucose_chart.dart';
+import 'package:dms_app/widgets/glucose_statistics_card.dart';
+import 'package:dms_app/widgets/period_analysis_card.dart';
+import 'package:dms_app/widgets/daily_pattern_card.dart';
 import 'package:dms_app/core/theme/app_theme.dart';
 import 'package:dms_app/core/constants/app_constants.dart';
 import 'package:dms_app/models/glucose_reading.dart';
@@ -107,6 +110,15 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
 
             // Glucose Chart Card
             _buildChartCard(),
+
+            // Enhanced Statistics Card
+            _buildEnhancedStatistics(),
+
+            // Period Analysis Card
+            _buildPeriodAnalysis(),
+
+            // Daily Pattern Card
+            _buildDailyPattern(),
 
             // Clarity Section (placeholder)
             _buildClarityCard(),
@@ -495,6 +507,48 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     );
   }
 
+  Widget _buildEnhancedStatistics() {
+    return Consumer<GlucoseProvider>(
+      builder: (context, glucose, child) {
+        final readings = glucose.getReadingsForTimeRange(_selectedTimeRange);
+        if (readings.isEmpty) return const SizedBox.shrink();
+
+        return GlucoseStatisticsCard(
+          readings: readings,
+          timeRangeLabel: _selectedTimeRange == 24 ? '24 hrs' : '$_selectedTimeRange hrs',
+        );
+      },
+    );
+  }
+
+  Widget _buildPeriodAnalysis() {
+    return Consumer<GlucoseProvider>(
+      builder: (context, glucose, child) {
+        final readings = glucose.getReadingsForTimeRange(_selectedTimeRange);
+        if (readings.isEmpty) return const SizedBox.shrink();
+
+        return PeriodAnalysisCard(
+          readings: readings,
+          timeRangeLabel: _selectedTimeRange == 24 ? '24 hrs' : '$_selectedTimeRange hrs',
+        );
+      },
+    );
+  }
+
+  Widget _buildDailyPattern() {
+    return Consumer<GlucoseProvider>(
+      builder: (context, glucose, child) {
+        final readings = glucose.getReadingsForTimeRange(_selectedTimeRange);
+        if (readings.isEmpty) return const SizedBox.shrink();
+
+        return DailyPatternCard(
+          readings: readings,
+          timeRangeLabel: _selectedTimeRange == 24 ? '24 hrs' : '$_selectedTimeRange hrs',
+        );
+      },
+    );
+  }
+
   Widget _buildClarityCard() {
     return Container(
       margin: const EdgeInsets.all(16),
@@ -861,7 +915,7 @@ class _HistoryTabContent extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      color: statusColor.withOpacity(0.1),
+      color: statusColor.withValues(alpha: 0.1),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -973,7 +1027,7 @@ class _HistoryTabContent extends StatelessWidget {
             onHoursChanged(hours);
           }
         },
-        selectedColor: AppTheme.primaryColor.withOpacity(0.2),
+        selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
         labelStyle: TextStyle(
           color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -1036,20 +1090,36 @@ class _HistoryTabContent extends StatelessWidget {
 
   Widget _buildChartView() {
     final readings = historyResult!.readings;
-    
-    return Column(
-      children: [
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: GlucoseChart(
-              readings: readings,
-              hoursRange: selectedHours,
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          SizedBox(
+            height: 300,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: GlucoseChart(
+                readings: readings,
+                hoursRange: selectedHours,
+              ),
             ),
           ),
-        ),
-        _buildStatisticsCard(readings),
-      ],
+          _buildStatisticsCard(readings),
+          GlucoseStatisticsCard(
+            readings: readings,
+            timeRangeLabel: selectedHours == 24 ? '24 hrs' : '$selectedHours hrs',
+          ),
+          PeriodAnalysisCard(
+            readings: readings,
+            timeRangeLabel: selectedHours == 24 ? '24 hrs' : '$selectedHours hrs',
+          ),
+          DailyPatternCard(
+            readings: readings,
+            timeRangeLabel: selectedHours == 24 ? '24 hrs' : '$selectedHours hrs',
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
     );
   }
 
@@ -1070,9 +1140,9 @@ class _HistoryTabContent extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildStatItem('Average', '${avg.toStringAsFixed(0)}', _getGlucoseColor(avg)),
-            _buildStatItem('Min', '${min.toStringAsFixed(0)}', _getGlucoseColor(min)),
-            _buildStatItem('Max', '${max.toStringAsFixed(0)}', _getGlucoseColor(max)),
+            _buildStatItem('Average', avg.toStringAsFixed(0), _getGlucoseColor(avg)),
+            _buildStatItem('Min', min.toStringAsFixed(0), _getGlucoseColor(min)),
+            _buildStatItem('Max', max.toStringAsFixed(0), _getGlucoseColor(max)),
             _buildStatItem('In Range', '$inRangePercent%', AppTheme.glucoseNormal),
           ],
         ),
@@ -1153,7 +1223,7 @@ class _HistoryTabContent extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Center(
