@@ -4,10 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:dms_app/providers/glucose_provider.dart';
 import 'package:dms_app/providers/auth_provider.dart';
+import 'package:dms_app/providers/settings_provider.dart';
 import 'package:dms_app/widgets/glucose_chart.dart';
 import 'package:dms_app/widgets/glucose_statistics_card.dart';
 import 'package:dms_app/widgets/period_analysis_card.dart';
 import 'package:dms_app/widgets/daily_pattern_card.dart';
+import 'package:dms_app/widgets/analysis_demo_dialog.dart';
+import 'package:dms_app/widgets/glucose_trends_card.dart';
 import 'package:dms_app/core/theme/app_theme.dart';
 import 'package:dms_app/core/constants/app_constants.dart';
 import 'package:dms_app/models/glucose_reading.dart';
@@ -62,7 +65,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: _buildBody(),
       ),
@@ -111,6 +114,9 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
             // Glucose Chart Card
             _buildChartCard(),
 
+            // Glucose Trends Card - New!
+            _buildTrendsCard(),
+
             // Enhanced Statistics Card
             _buildEnhancedStatistics(),
 
@@ -147,22 +153,44 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          // Profile Avatar
-          GestureDetector(
-            onTap: () => setState(() => _currentNavIndex = 3),
-            child: CircleAvatar(
-              radius: 24,
-              backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
-              child: const Icon(Icons.person, color: AppTheme.primaryColor),
-            ),
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, child) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Theme Toggle Button
+              IconButton(
+                icon: Icon(
+                  settings.themeMode == ThemeMode.dark
+                      ? Icons.light_mode
+                      : Icons.dark_mode,
+                ),
+                onPressed: () {
+                  // Cycle through themes
+                  final nextTheme = settings.themeMode == ThemeMode.light
+                      ? ThemeMode.dark
+                      : settings.themeMode == ThemeMode.dark
+                          ? ThemeMode.system
+                          : ThemeMode.light;
+                  settings.setThemeMode(nextTheme);
+                },
+                tooltip: 'Toggle theme',
+              ),
+              // Profile Avatar
+              GestureDetector(
+                onTap: () => setState(() => _currentNavIndex = 3),
+                child: CircleAvatar(
+                  radius: 24,
+                  backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                  child: const Icon(Icons.person, color: AppTheme.primaryColor),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -177,7 +205,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 16),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -205,34 +233,60 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     return Consumer<GlucoseProvider>(
       builder: (context, glucose, child) {
         return Padding(
-          padding: const EdgeInsets.all(16),
-          child: ElevatedButton.icon(
-            onPressed: () async {
-              // Navigate to Dexcom connection screen
-              await context.push('/settings/dexcom');
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              ElevatedButton.icon(
+                onPressed: () async {
+                  // Navigate to Dexcom connection screen
+                  await context.push('/settings/dexcom');
 
-              // Refresh data after returning
-              if (mounted) {
-                _loadData();
-              }
-            },
-            icon: Icon(
-              glucose.sensorConnected ? Icons.sensors : Icons.sensor_occupied,
-              size: 20,
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: glucose.sensorConnected
-                  ? Colors.green.shade700
-                  : const Color(0xFF3C4043),
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
+                  // Refresh data after returning
+                  if (mounted) {
+                    _loadData();
+                  }
+                },
+                icon: Icon(
+                  glucose.sensorConnected ? Icons.sensors : Icons.sensor_occupied,
+                  size: 20,
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: glucose.sensorConnected
+                      ? AppTheme.secondaryColor
+                      : Colors.grey.shade600,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                label: Text(
+                  glucose.sensorConnected ? 'Sensor connected' : 'Connect sensor',
+                  style: const TextStyle(fontSize: 16, color: Colors.white),
+                ),
               ),
-            ),
-            label: Text(
-              glucose.sensorConnected ? 'Sensor connected' : 'Connect sensor',
-              style: const TextStyle(fontSize: 16, color: Colors.white),
-            ),
+              const SizedBox(height: 12),
+              // Demo Analysis Button
+              ElevatedButton.icon(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => const AnalysisDemoDialog(),
+                  );
+                },
+                icon: const Icon(Icons.analytics, size: 20),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                label: const Text(
+                  'View Analysis Demo',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -278,10 +332,10 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Current glucose level',
                         style: TextStyle(
-                          color: Colors.white70,
+                          color: Colors.white.withValues(alpha: 0.85),
                           fontSize: 14,
                         ),
                       ),
@@ -335,8 +389,8 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                   children: [
                     Text(
                       _getTimeAgo(reading.timestamp),
-                      style: const TextStyle(
-                        color: Colors.white70,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.75),
                         fontSize: 12,
                       ),
                     ),
@@ -435,7 +489,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 16),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -462,7 +516,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: isSelected 
-                                  ? Colors.grey.shade200 
+                                  ? AppTheme.secondaryColor.withValues(alpha: 0.15)
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -504,6 +558,23 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTrendsCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Consumer<GlucoseProvider>(
+        builder: (context, glucose, child) {
+          final readings = glucose.getReadingsForTimeRange(_selectedTimeRange);
+          if (readings.isEmpty) return const SizedBox.shrink();
+          
+          return GlucoseTrendsCard(
+            readings: readings,
+            timeRange: '${_selectedTimeRange}h',
+          );
+        },
+      ),
     );
   }
 
@@ -554,7 +625,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -657,79 +728,147 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
   }
 
   Widget _buildProfilePlaceholder() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Profile',
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, child) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Profile',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 24),
+              
+              // App Settings Section
+              const Text(
+                'App Settings',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 8),
+              _buildSettingsItem(
+                icon: Icons.palette_outlined,
+                title: 'Theme',
+                subtitle: _getThemeModeName(settings.themeMode),
+                onTap: () => _showThemeDialog(context, settings),
+              ),
+              _buildSettingsItem(
+                icon: Icons.notifications_outlined,
+                title: 'Alerts',
+                onTap: () => context.push('/settings/alerts'),
+              ),
+              _buildSettingsItem(
+                icon: Icons.event_note_outlined,
+                title: 'Events',
+                onTap: () {},
+              ),
+              _buildSettingsItem(
+                icon: Icons.radio_button_checked,
+                title: 'Glucose Tab',
+                onTap: () {},
+              ),
+              _buildSettingsToggle(
+                icon: Icons.preview_outlined,
+                title: 'Quick Preview',
+                subtitle: 'Quickly check G7 info in the notification menu',
+                value: true,
+                onChanged: (v) {},
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Phone Settings Section
+              const Text(
+                'Phone Settings',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 8),
+              _buildSettingsItem(
+                icon: Icons.phone_android,
+                title: 'G7 app security on Android devices',
+                subtitle: 'Avoid phone settings that prevent alerts and app from working.',
+                onTap: () {},
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Logout Button
+              ElevatedButton.icon(
+                onPressed: () async {
+                  await context.read<AuthProvider>().logout();
+                  if (mounted) {
+                    context.go('/login');
+                  }
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text('Sign Out'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.errorColor,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
-          
-          // App Settings Section
-          const Text(
-            'App Settings',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 8),
-          _buildSettingsItem(
-            icon: Icons.notifications_outlined,
-            title: 'Alerts',
-            onTap: () => context.push('/settings/alerts'),
-          ),
-          _buildSettingsItem(
-            icon: Icons.event_note_outlined,
-            title: 'Events',
-            onTap: () {},
-          ),
-          _buildSettingsItem(
-            icon: Icons.radio_button_checked,
-            title: 'Glucose Tab',
-            onTap: () {},
-          ),
-          _buildSettingsToggle(
-            icon: Icons.preview_outlined,
-            title: 'Quick Preview',
-            subtitle: 'Quickly check G7 info in the notification menu',
-            value: true,
-            onChanged: (v) {},
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Phone Settings Section
-          const Text(
-            'Phone Settings',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 8),
-          _buildSettingsItem(
-            icon: Icons.phone_android,
-            title: 'G7 app security on Android devices',
-            subtitle: 'Avoid phone settings that prevent alerts and app from working.',
-            onTap: () {},
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Logout Button
-          ElevatedButton.icon(
-            onPressed: () async {
-              await context.read<AuthProvider>().logout();
-              if (mounted) {
-                context.go('/login');
-              }
-            },
-            icon: const Icon(Icons.logout),
-            label: const Text('Sign Out'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.errorColor,
-              foregroundColor: Colors.white,
+        );
+      },
+    );
+  }
+
+  String _getThemeModeName(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return 'Light';
+      case ThemeMode.dark:
+        return 'Dark';
+      case ThemeMode.system:
+        return 'System';
+    }
+  }
+
+  void _showThemeDialog(BuildContext context, SettingsProvider settings) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Theme'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('Light'),
+              leading: Radio<ThemeMode>(
+                value: ThemeMode.light,
+                groupValue: settings.themeMode,
+                onChanged: (value) {
+                  if (value != null) settings.setThemeMode(value);
+                  Navigator.pop(dialogContext);
+                },
+              ),
             ),
-          ),
-        ],
+            ListTile(
+              title: const Text('Dark'),
+              leading: Radio<ThemeMode>(
+                value: ThemeMode.dark,
+                groupValue: settings.themeMode,
+                onChanged: (value) {
+                  if (value != null) settings.setThemeMode(value);
+                  Navigator.pop(dialogContext);
+                },
+              ),
+            ),
+            ListTile(
+              title: const Text('System'),
+              leading: Radio<ThemeMode>(
+                value: ThemeMode.system,
+                groupValue: settings.themeMode,
+                onChanged: (value) {
+                  if (value != null) settings.setThemeMode(value);
+                  Navigator.pop(dialogContext);
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -911,7 +1050,7 @@ class _HistoryTabContent extends StatelessWidget {
     if (historyResult == null) return const SizedBox.shrink();
 
     final isActive = historyResult!.sensorActive;
-    final statusColor = isActive ? Colors.green : Colors.orange;
+    final statusColor = isActive ? AppTheme.glucoseNormal : AppTheme.warningColor;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -937,13 +1076,13 @@ class _HistoryTabContent extends StatelessWidget {
                         isActive ? 'Sensor active' : 'Sensor inactive',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: statusColor.shade700,
+                          color: statusColor,
                         ),
                       ),
                       Text(
                         historyResult!.message,
                         style: TextStyle(
-                          color: statusColor.shade700,
+                          color: statusColor.withValues(alpha: 0.8),
                           fontSize: 12,
                         ),
                       ),
@@ -958,14 +1097,14 @@ class _HistoryTabContent extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: statusColor.shade700,
+                          color: statusColor,
                         ),
                       ),
                       Text(
                         'readings',
                         style: TextStyle(
                           fontSize: 10,
-                          color: statusColor.shade700,
+                          color: statusColor.withValues(alpha: 0.8),
                         ),
                       ),
                     ],

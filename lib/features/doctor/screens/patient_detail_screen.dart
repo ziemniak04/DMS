@@ -103,7 +103,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -206,7 +206,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -241,7 +241,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? AppTheme.primaryColor
-                                : Colors.grey.shade200,
+                                : AppTheme.secondaryColor.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(
@@ -332,7 +332,7 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.secondaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(

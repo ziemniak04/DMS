@@ -21,10 +21,11 @@ import 'package:dms_app/features/patient/screens/add_event_screen.dart';
 /// TODO: [PLACEHOLDER] Add authentication guards when Firebase is implemented
 /// TODO: [PLACEHOLDER] Add deep linking support
 class AppRouter {
-  static final GoRouter router = GoRouter(
-    initialLocation: '/',
-    debugLogDiagnostics: true,
-    routes: [
+  static GoRouter router(BuildContext context) {
+    return GoRouter(
+      initialLocation: '/',
+      debugLogDiagnostics: true,
+      routes: [
       // Auth routes
       GoRoute(
         path: '/',
@@ -116,10 +117,11 @@ class AppRouter {
         ],
       ),
     ],
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(
-        child: Text('Page not found: ${state.uri}'),
+      errorBuilder: (context, state) => Scaffold(
+        body: Center(
+          child: Text('Page not found: ${state.uri}'),
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

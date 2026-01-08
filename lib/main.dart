@@ -6,6 +6,7 @@ import 'package:dms_app/core/router/app_router.dart';
 import 'package:dms_app/providers/auth_provider.dart';
 import 'package:dms_app/providers/glucose_provider.dart';
 import 'package:dms_app/providers/events_provider.dart';
+import 'package:dms_app/providers/settings_provider.dart';
 import 'package:dms_app/firebase_options.dart';
 
 void main() async {
@@ -24,8 +25,8 @@ void main() async {
 /// A comprehensive glucose tracking application with:
 /// - Patient view for monitoring glucose levels
 /// - Doctor view for managing patients
-/// - Real-time sensor data integration (placeholder)
-/// - Firebase authentication (placeholder)
+/// - Real-time sensor data integration
+/// - Firebase authentication
 class DMSApp extends StatelessWidget {
   const DMSApp({super.key});
 
@@ -33,17 +34,22 @@ class DMSApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => GlucoseProvider()),
         ChangeNotifierProvider(create: (_) => EventsProvider()),
       ],
-      child: MaterialApp.router(
-        title: 'DMS - Diabetes Management System',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.light, // TODO: [PLACEHOLDER] Make this configurable
-        routerConfig: AppRouter.router,
+      child: Consumer<SettingsProvider>(
+        builder: (context, settings, child) {
+          return MaterialApp.router(
+            title: 'DMS - Diabetes Management System',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: settings.themeMode,
+            routerConfig: AppRouter.router(context),
+          );
+        },
       ),
     );
   }
