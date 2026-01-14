@@ -69,9 +69,24 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
       body: SafeArea(
         child: _buildBody(),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/patient/add-event'),
-        child: const Icon(Icons.add),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // AI Assistant FAB
+          FloatingActionButton.small(
+            heroTag: 'ai_assistant',
+            onPressed: () => context.push('/patient/ai-assistant'),
+            backgroundColor: Colors.purple,
+            child: const Icon(Icons.smart_toy, color: Colors.white),
+          ),
+          const SizedBox(height: 8),
+          // Add Event FAB
+          FloatingActionButton(
+            heroTag: 'add_event',
+            onPressed: () => context.push('/patient/add-event'),
+            child: const Icon(Icons.add),
+          ),
+        ],
       ),
       bottomNavigationBar: _buildBottomNav(),
     );

@@ -13,8 +13,10 @@ import 'package:dms_app/features/doctor/screens/patient_detail_screen.dart';
 import 'package:dms_app/features/settings/screens/settings_screen.dart';
 import 'package:dms_app/features/settings/screens/alerts_settings_screen.dart';
 import 'package:dms_app/features/settings/screens/dexcom_connection_screen.dart';
+import 'package:dms_app/features/settings/screens/notification_settings_screen.dart';
 import 'package:dms_app/features/auth/screens/splash_screen.dart';
 import 'package:dms_app/features/patient/screens/add_event_screen.dart';
+import 'package:dms_app/features/patient/screens/ai_assistant_screen.dart';
 
 /// App Router Configuration
 /// 
@@ -74,6 +76,11 @@ class AppRouter {
             name: 'addEvent',
             builder: (context, state) => const AddEventScreen(),
           ),
+          GoRoute(
+            path: 'ai-assistant',
+            name: 'aiAssistant',
+            builder: (context, state) => const AiAssistantScreen(),
+          ),
         ],
       ),
       
@@ -113,6 +120,11 @@ class AppRouter {
             path: 'dexcom',
             name: 'dexcomConnection',
             builder: (context, state) => const DexcomConnectionScreen(),
+          ),
+          GoRoute(
+            path: 'notifications',
+            name: 'notificationSettings',
+            builder: (context, state) => const NotificationSettingsScreen(),
           ),
         ],
       ),

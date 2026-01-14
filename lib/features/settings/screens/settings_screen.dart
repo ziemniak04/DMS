@@ -60,6 +60,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push('/settings/alerts'),
               ),
+              ListTile(
+                title: const Text('Reminders & AI Assistant'),
+                subtitle: const Text('Hourly reminders, quiet hours, AI settings'),
+                trailing: const Icon(Icons.chevron_right),
+                leading: const Icon(Icons.schedule),
+                onTap: () => context.push('/settings/notifications'),
+              ),
               
               // Data Section
               _buildSectionHeader('Data'),
