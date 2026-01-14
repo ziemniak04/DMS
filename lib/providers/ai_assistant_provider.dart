@@ -9,13 +9,12 @@ import 'package:dms_app/models/glucose_reading.dart';
 class AiAssistantProvider extends ChangeNotifier {
   final AiAssistantService _service = AiAssistantService();
   
-  static const String _apiKeyKey = 'ai_assistant_api_key';
   static const String _enabledKey = 'ai_assistant_enabled';
   
   final List<AiAssistantResponse> _chatHistory = [];
   bool _isLoading = false;
-  bool _isEnabled = false;
-  bool _isConfigured = false;
+  bool _isEnabled = true; // Enabled by default since no API key needed
+  bool _isConfigured = true; // Always configured with built-in API
   String? _error;
   
   List<AiAssistantResponse> get chatHistory => List.unmodifiable(_chatHistory);
@@ -32,13 +31,8 @@ class AiAssistantProvider extends ChangeNotifier {
   Future<void> _loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final apiKey = prefs.getString(_apiKeyKey);
-      _isEnabled = prefs.getBool(_enabledKey) ?? false;
-      
-      if (apiKey != null && apiKey.isNotEmpty) {
-        _service.initialize(apiKey);
-        _isConfigured = true;
-      }
+      _isEnabled = prefs.getBool(_enabledKey) ?? true;
+      _isConfigured = true; // Always configured
       
       notifyListeners();
     } catch (e) {
@@ -47,23 +41,9 @@ class AiAssistantProvider extends ChangeNotifier {
     }
   }
   
-  /// Configure the AI assistant with an API key
-  Future<bool> configure(String apiKey) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_apiKeyKey, apiKey);
-      
-      _service.initialize(apiKey);
-      _isConfigured = true;
-      _error = null;
-      
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = 'Failed to configure AI assistant: ${e.toString()}';
-      notifyListeners();
-      return false;
-    }
+  /// Check if the AI service is available
+  Future<bool> checkHealth() async {
+    return await _service.checkHealth();
   }
   
   /// Enable or disable the AI assistant
@@ -78,25 +58,7 @@ class AiAssistantProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
-  /// Remove API key and disable assistant
-  Future<void> disconnect() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_apiKeyKey);
-      await prefs.setBool(_enabledKey, false);
-      
-      _isConfigured = false;
-      _isEnabled = false;
-      _chatHistory.clear();
-      
-      notifyListeners();
-    } catch (e) {
-      _error = 'Failed to disconnect: ${e.toString()}';
-      notifyListeners();
-    }
-  }
-  
+
   /// Analyze current glucose readings
   Future<AiAssistantResponse?> analyzeGlucose({
     required GlucoseReading currentReading,

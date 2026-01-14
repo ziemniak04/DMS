@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:dms_app/providers/ai_assistant_provider.dart';
 import 'package:dms_app/providers/glucose_provider.dart';
 import 'package:dms_app/services/ai_assistant_service.dart';
@@ -182,19 +183,19 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.smart_toy_outlined,
+              Icons.cloud_off,
               size: 80,
               color: Colors.grey[400],
             ),
             const SizedBox(height: 24),
             Text(
-              'AI Assistant Not Configured',
+              'AI Assistant Unavailable',
               style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             Text(
-              'To use the AI assistant, you need to add your Anthropic API key in settings.',
+              'The AI service is temporarily unavailable. Please try again later.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.grey[600],
               ),
@@ -202,9 +203,20 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: () => _showApiKeyDialog(context),
-              icon: const Icon(Icons.key),
-              label: const Text('Add API Key'),
+              onPressed: () async {
+                final available = await context.read<AiAssistantProvider>().checkHealth();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(available 
+                          ? 'AI service is available!' 
+                          : 'AI service is still unavailable'),
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Check Status'),
             ),
           ],
         ),
@@ -333,12 +345,50 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
                         ],
                       ),
                     ),
-                  Text(
-                    response.message,
-                    style: TextStyle(
-                      color: isUserMessage ? Colors.white : Colors.black87,
+                  if (isUserMessage)
+                    Text(
+                      response.message,
+                      style: const TextStyle(
+                        color: Colors.white,
+                      ),
+                    )
+                  else
+                    MarkdownBody(
+                      data: response.message,
+                      selectable: true,
+                      styleSheet: MarkdownStyleSheet(
+                        p: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 14,
+                        ),
+                        strong: TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        em: TextStyle(
+                          color: Colors.black87,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        listBullet: TextStyle(
+                          color: Colors.black87,
+                        ),
+                        h1: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        h2: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        h3: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -440,61 +490,6 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-  
-  void _showApiKeyDialog(BuildContext context) {
-    final controller = TextEditingController();
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add API Key'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Enter your Anthropic API key to enable the AI assistant.',
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Get your API key from console.anthropic.com',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'API Key',
-                hintText: 'sk-ant-...',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (controller.text.isNotEmpty) {
-                await context.read<AiAssistantProvider>().configure(controller.text);
-                if (context.mounted) {
-                  Navigator.pop(context);
-                }
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
       ),
     );
   }

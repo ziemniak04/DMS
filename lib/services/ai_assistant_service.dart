@@ -4,24 +4,32 @@ import 'package:dms_app/models/glucose_reading.dart';
 
 /// AI Assistant Service
 /// 
-/// Uses Claude Haiku 4.5 to analyze glucose readings and provide
+/// Uses custom LLM backend to analyze glucose readings and provide
 /// personalized tips and warnings to the user.
 /// 
 /// IMPORTANT: All AI-generated advice includes a disclaimer that
 /// users should consult their healthcare provider for medical decisions.
 class AiAssistantService {
-  static const String _baseUrl = 'https://api.anthropic.com/v1/messages';
-  static const String _model = 'claude-sonnet-4-20250514'; // Claude Haiku 4.5
+  static const String _baseUrl = 'https://mkuch.pl/fast-llm/chat';
+  static const String _healthUrl = 'https://mkuch.pl/fast-llm/health';
+  static const String _apiKey = 'tajnyklucz123deepseek';
   
-  String? _apiKey;
-  
-  /// Initialize the service with API key
-  void initialize(String apiKey) {
-    _apiKey = apiKey;
+  /// Check if the service is available
+  Future<bool> checkHealth() async {
+    try {
+      final response = await http.get(Uri.parse(_healthUrl));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['status'] == 'ok';
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
   
-  /// Check if the service is configured
-  bool get isConfigured => _apiKey != null && _apiKey!.isNotEmpty;
+  /// Service is always configured (uses built-in API key)
+  bool get isConfigured => true;
   
   /// Analyze glucose readings and provide personalized advice
   /// 
@@ -197,30 +205,22 @@ IMPORTANT:
 ''';
   }
   
-  /// Send message to Claude API
+  /// Send message to LLM API
   Future<AiAssistantResponse> _sendMessage(String prompt) async {
     final response = await http.post(
       Uri.parse(_baseUrl),
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': _apiKey!,
-        'anthropic-version': '2023-06-01',
       },
       body: jsonEncode({
-        'model': _model,
-        'max_tokens': 500,
-        'messages': [
-          {
-            'role': 'user',
-            'content': prompt,
-          },
-        ],
+        'key': _apiKey,
+        'query': prompt,
       }),
     );
     
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      final content = data['content'][0]['text'] as String;
+      final content = data['response'] as String;
       
       // Determine response type based on content
       AiResponseType type = AiResponseType.info;
@@ -240,8 +240,7 @@ IMPORTANT:
         disclaimer: _getDisclaimer(),
       );
     } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['error']?['message'] ?? 'API request failed');
+      throw Exception('API request failed with status ${response.statusCode}');
     }
   }
   

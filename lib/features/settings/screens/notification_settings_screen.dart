@@ -170,33 +170,29 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       children: [
                         SwitchListTile(
                           title: const Text('AI Assistant'),
-                          subtitle: Text(
-                            aiProvider.isConfigured
-                                ? 'Get AI-powered glucose insights'
-                                : 'Configure API key to enable',
-                          ),
+                          subtitle: const Text('Get AI-powered glucose insights'),
                           value: aiProvider.isEnabled,
-                          onChanged: aiProvider.isConfigured
-                              ? (value) => aiProvider.setEnabled(value)
-                              : null,
+                          onChanged: (value) => aiProvider.setEnabled(value),
                           secondary: const Icon(Icons.smart_toy),
                         ),
-                        if (!aiProvider.isConfigured)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: ElevatedButton.icon(
-                              onPressed: () => _showApiKeyDialog(context, aiProvider),
-                              icon: const Icon(Icons.key),
-                              label: const Text('Add API Key'),
-                            ),
-                          ),
-                        if (aiProvider.isConfigured)
-                          ListTile(
-                            leading: const Icon(Icons.logout),
-                            title: const Text('Disconnect AI Assistant'),
-                            subtitle: const Text('Remove API key'),
-                            onTap: () => _confirmDisconnect(context, aiProvider),
-                          ),
+                        ListTile(
+                          leading: const Icon(Icons.health_and_safety),
+                          title: const Text('Check Service Status'),
+                          subtitle: const Text('Verify AI service availability'),
+                          onTap: () async {
+                            final available = await aiProvider.checkHealth();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(available 
+                                      ? '✓ AI service is online' 
+                                      : '✗ AI service is unavailable'),
+                                  backgroundColor: available ? Colors.green : Colors.red,
+                                ),
+                              );
+                            }
+                          },
+                        ),
                       ],
                     );
                   },
@@ -250,98 +246,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.primary,
         ),
-      ),
-    );
-  }
-  
-  void _showApiKeyDialog(BuildContext context, AiAssistantProvider provider) {
-    final controller = TextEditingController();
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add API Key'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Enter your Anthropic API key to enable the AI assistant.',
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Get your API key from console.anthropic.com',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'API Key',
-                hintText: 'sk-ant-...',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (controller.text.isNotEmpty) {
-                await provider.configure(controller.text);
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('AI Assistant configured')),
-                  );
-                }
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  void _confirmDisconnect(BuildContext context, AiAssistantProvider provider) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Disconnect AI Assistant?'),
-        content: const Text(
-          'This will remove your API key and disable the AI assistant.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await provider.disconnect();
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('AI Assistant disconnected')),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Disconnect'),
-          ),
-        ],
       ),
     );
   }

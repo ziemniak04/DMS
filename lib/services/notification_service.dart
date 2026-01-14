@@ -267,6 +267,31 @@ class NotificationService {
     );
   }
   
+  /// Send a test reminder notification (for testing purposes)
+  Future<void> sendTestReminder() async {
+    await _notifications.show(
+      _hourlyReminderId + 1,
+      '⏰ Test Reminder',
+      'This is a test notification. Your reminder settings are working correctly!',
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _glucoseCheckChannelId,
+          'Blood Sugar Check Reminders',
+          channelDescription: 'Hourly reminders to check your blood sugar levels',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+          icon: '@mipmap/ic_launcher',
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      payload: 'test_reminder',
+    );
+  }
+  
   // ==================== Glucose Alerts ====================
   
   /// Send a low glucose alert
