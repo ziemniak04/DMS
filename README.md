@@ -1,5 +1,11 @@
 # DMS - Diabetes Management System
 
+```
+mocked account mail/pass:
+mocked@test.pl
+123456
+```
+
 A comprehensive Flutter application for tracking glucose levels using continuous glucose monitoring (CGM) sensors. The app supports two user roles: **Patients** and **Doctors**.
 
 ## Getting Started
