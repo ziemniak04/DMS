@@ -7,6 +7,8 @@ import 'package:dms_app/providers/auth_provider.dart';
 import 'package:dms_app/providers/glucose_provider.dart';
 import 'package:dms_app/providers/events_provider.dart';
 import 'package:dms_app/providers/settings_provider.dart';
+import 'package:dms_app/providers/ai_assistant_provider.dart';
+import 'package:dms_app/services/notification_service.dart';
 import 'package:dms_app/firebase_options.dart';
 
 void main() async {
@@ -16,6 +18,9 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize notification service
+  await NotificationService().initialize();
 
   runApp(const DMSApp());
 }
@@ -38,6 +43,7 @@ class DMSApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => GlucoseProvider()),
         ChangeNotifierProvider(create: (_) => EventsProvider()),
+        ChangeNotifierProvider(create: (_) => AiAssistantProvider()),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settings, child) {

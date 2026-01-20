@@ -34,6 +34,16 @@ dependencies:
   dexcom: ^1.0.7
   firebase_core_platform_interface: ^6.0.2
 
+  # AI Assistant (Claude API)
+  http: ^1.2.0
+
+  # Local Notifications
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.10.0
+
+  # Markdown rendering
+  flutter_markdown: ^0.7.6
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

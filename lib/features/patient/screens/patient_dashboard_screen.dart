@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:dms_app/providers/glucose_provider.dart';
 import 'package:dms_app/providers/auth_provider.dart';
 import 'package:dms_app/providers/settings_provider.dart';
+import 'package:dms_app/providers/events_provider.dart';
 import 'package:dms_app/widgets/glucose_chart.dart';
 import 'package:dms_app/widgets/glucose_statistics_card.dart';
 import 'package:dms_app/widgets/period_analysis_card.dart';
@@ -45,20 +46,38 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _loadData();
+    // Load data after the first frame to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   void _loadData() async {
     final authProvider = context.read<AuthProvider>();
     final glucoseProvider = context.read<GlucoseProvider>();
+    final eventsProvider = context.read<EventsProvider>();
     final patientId = authProvider.currentUser?.id ?? 'demo';
+    final userEmail = authProvider.currentUser?.email ?? '';
+
+    print('Loading data for user: $userEmail, patientId: $patientId');
+
+    // Check if this is the mock account first
+    if (userEmail == 'mocked@test.pl') {
+      print('Loading mock data from Firestore...');
+      // Load mock data from Firestore directly
+      await glucoseProvider.loadGlucoseReadingsFromFirestore(patientId);
+      await eventsProvider.loadEvents(patientId, isMockAccount: true);
+      print('Mock data loaded. Readings: ${glucoseProvider.readings.length}');
+      return;
+    }
 
     // Try to initialize Dexcom with stored credentials
     await glucoseProvider.initializeDexcom(patientId);
 
-    // If not connected, load mock data for demo purposes
+    // If not connected, load local mock data for demo purposes
     if (!glucoseProvider.sensorConnected) {
       await glucoseProvider.initializeMockData(patientId);
+      await eventsProvider.loadEvents(patientId);
     }
   }
 
@@ -69,9 +88,24 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
       body: SafeArea(
         child: _buildBody(),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/patient/add-event'),
-        child: const Icon(Icons.add),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // AI Assistant FAB
+          FloatingActionButton.small(
+            heroTag: 'ai_assistant',
+            onPressed: () => context.push('/patient/ai-assistant'),
+            backgroundColor: Colors.purple,
+            child: const Icon(Icons.smart_toy, color: Colors.white),
+          ),
+          const SizedBox(height: 8),
+          // Add Event FAB
+          FloatingActionButton(
+            heroTag: 'add_event',
+            onPressed: () => context.push('/patient/add-event'),
+            child: const Icon(Icons.add),
+          ),
+        ],
       ),
       bottomNavigationBar: _buildBottomNav(),
     );

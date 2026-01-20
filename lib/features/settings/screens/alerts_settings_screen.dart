@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dms_app/core/theme/app_theme.dart';
 import 'package:dms_app/core/constants/app_constants.dart';
+import 'package:dms_app/services/notification_service.dart';
 
 /// Alerts Settings Screen
 /// Configure glucose thresholds and notification preferences
@@ -220,6 +221,53 @@ class _AlertsSettingsScreenState extends State<AlertsSettingsScreen> {
           
           const SizedBox(height: 24),
           
+          // Test Notifications Section
+          _buildSectionHeader('Test Notifications'),
+          
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              'Send a test notification to verify your settings are working correctly.',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+              ),
+            ),
+          ),
+          
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _sendTestNotification('reminder'),
+                  icon: const Icon(Icons.schedule, size: 18),
+                  label: const Text('Reminder'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _sendTestNotification('low'),
+                  icon: const Icon(Icons.arrow_downward, size: 18),
+                  label: const Text('Low Alert'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.glucoseLow,
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _sendTestNotification('high'),
+                  icon: const Icon(Icons.arrow_upward, size: 18),
+                  label: const Text('High Alert'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.glucoseHigh,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          
           // Save Button
           Padding(
             padding: const EdgeInsets.all(16),
@@ -317,5 +365,43 @@ class _AlertsSettingsScreenState extends State<AlertsSettingsScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _sendTestNotification(String type) async {
+    final notificationService = NotificationService();
+    
+    // Request permissions first
+    final granted = await notificationService.requestPermissions();
+    if (!granted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Notification permission required'),
+          ),
+        );
+      }
+      return;
+    }
+
+    switch (type) {
+      case 'reminder':
+        await notificationService.sendTestReminder();
+        break;
+      case 'low':
+        await notificationService.sendLowGlucoseAlert(65);
+        break;
+      case 'high':
+        await notificationService.sendHighGlucoseAlert(280);
+        break;
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Test $type notification sent!'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 }

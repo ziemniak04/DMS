@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dms_app/models/diabetes_event.dart';
+import 'package:dms_app/services/firestore_service.dart';
 
 /// Events Provider for tracking diabetes-related events
 /// 
@@ -7,6 +8,7 @@ import 'package:dms_app/models/diabetes_event.dart';
 /// TODO: [PLACEHOLDER] Add offline support with local storage
 /// TODO: [PLACEHOLDER] Implement event reminders/notifications
 class EventsProvider extends ChangeNotifier {
+  final FirestoreService _firestoreService = FirestoreService();
   List<DiabetesEvent> _events = [];
   bool _isLoading = false;
   String? _error;
@@ -59,14 +61,18 @@ class EventsProvider extends ChangeNotifier {
   }
 
   /// Load events from storage
-  /// TODO: [PLACEHOLDER] Load from Firebase
-  Future<void> loadEvents(String patientId) async {
+  Future<void> loadEvents(String patientId, {bool isMockAccount = false}) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      // Generate some mock events
-      _events = _generateMockEvents(patientId);
+      if (isMockAccount) {
+        // Load events from Firestore for mock account
+        _events = await _firestoreService.getDiabetesEvents(patientId);
+      } else {
+        // Generate some mock events for demo
+        _events = _generateMockEvents(patientId);
+      }
       
       _isLoading = false;
       notifyListeners();
