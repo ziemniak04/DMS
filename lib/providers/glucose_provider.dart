@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dms_app/models/glucose_reading.dart';
 import 'package:dms_app/services/dexcom_service.dart';
+import 'package:dms_app/services/firestore_service.dart';
 import 'dart:math';
 import 'dart:async';
 
@@ -9,6 +10,7 @@ import 'dart:async';
 /// Integrated with Dexcom CGM for real-time glucose monitoring
 class GlucoseProvider extends ChangeNotifier {
   final DexcomService _dexcomService = DexcomService();
+  final FirestoreService _firestoreService = FirestoreService();
 
   List<GlucoseReading> _readings = [];
   GlucoseReading? _currentReading;
@@ -94,6 +96,28 @@ class GlucoseProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _error = 'Failed to load glucose readings: ${e.toString()}';
+      notifyListeners();
+    }
+  }
+
+  /// Load glucose readings from Firestore (for mock accounts)
+  Future<void> loadGlucoseReadingsFromFirestore(String patientId, {int hours = 24}) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      print('Loading glucose readings from Firestore for patientId: $patientId');
+      _readings = await _firestoreService.getGlucoseReadings(patientId, hours: hours);
+      _currentReading = _readings.isNotEmpty ? _readings.last : null;
+      _sensorConnected = false; // Firestore data, not real sensor
+      print('Loaded ${_readings.length} glucose readings from Firestore');
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      print('Error loading glucose readings from Firestore: $e');
+      _error = 'Failed to load glucose readings from database: ${e.toString()}';
+      _isLoading = false;
       notifyListeners();
     }
   }
