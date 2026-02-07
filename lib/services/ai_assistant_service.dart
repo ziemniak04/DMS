@@ -1,18 +1,19 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:dms_app/models/glucose_reading.dart';
+import 'package:dms_app/core/config.dart';
 
 /// AI Assistant Service
-/// 
+///
 /// Uses custom LLM backend to analyze glucose readings and provide
 /// personalized tips and warnings to the user.
-/// 
+///
 /// IMPORTANT: All AI-generated advice includes a disclaimer that
 /// users should consult their healthcare provider for medical decisions.
 class AiAssistantService {
-  static const String _baseUrl = 'https://mkuch.pl/fast-llm/chat';
-  static const String _healthUrl = 'https://mkuch.pl/fast-llm/health';
-  static const String _apiKey = 'tajnyklucz123deepseek';
+  static final String _baseUrl = AppConfig.aiAssistantBaseUrl;
+  static final String _healthUrl = AppConfig.aiAssistantHealthUrl;
+  static final String _apiKey = AppConfig.aiAssistantApiKey;
   
   /// Check if the service is available
   Future<bool> checkHealth() async {

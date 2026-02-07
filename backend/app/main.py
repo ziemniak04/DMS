@@ -87,11 +87,10 @@ app = FastAPI(
 settings = get_settings()
 
 # Configure CORS
-# For testing: allow all origins. In production, use settings.CORS_ORIGINS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for testing
-    allow_credentials=False,  # Must be False when using wildcard origins
+    allow_origins=settings.CORS_ORIGINS if not settings.DEBUG else ["*"],
+    allow_credentials=True if not settings.DEBUG else False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

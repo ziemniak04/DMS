@@ -28,7 +28,6 @@ class AuthProvider extends ChangeNotifier {
       if (firebaseUser != null) {
         // Check if this is a mock account that needs data generation BEFORE fetching from Firestore
         if (firebaseUser.email == MockDataService.mockEmail) {
-          print('Mock account detected during auth state change: ${firebaseUser.email}');
           // For mock accounts, create a basic User object without Firestore document
           _currentUser = User(
             id: firebaseUser.uid,
@@ -42,23 +41,18 @@ class AuthProvider extends ChangeNotifier {
           // Create user document in Firestore for the mock account (needed for security rules)
           try {
             await _firestoreService.createUser(_currentUser!);
-            print('Created Firestore document for mock user');
           } catch (e) {
-            print('Error creating Firestore document for mock user: $e');
+            debugPrint('Error creating Firestore document for mock user: $e');
             // Continue anyway - the user object exists in memory
           }
 
           // Check if mock data already exists
           try {
             if (!await MockDataService.hasMockData(firebaseUser.uid)) {
-              print('No mock data found, generating...');
               await MockDataService.generateMockData(firebaseUser.uid);
-              print('Mock data generated during auth state change');
-            } else {
-              print('Mock data already exists');
             }
           } catch (e) {
-            print('Error checking/generating mock data: $e');
+            debugPrint('Error checking/generating mock data: $e');
           }
 
           notifyListeners();
@@ -95,25 +89,13 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
 
-      print('Attempting login for email: $email');
-
       // Normal Firebase Auth flow (including mock account)
-      print('Using normal Firebase Auth flow for: $email');
       _currentUser = await _authService.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
       if (_currentUser != null) {
-        print('Firebase Auth successful for: $email, userId: ${_currentUser!.id}');
-
-        // Check if this is the mock account that just logged in
-        if (email == MockDataService.mockEmail) {
-          print('Mock account detected! Email: "$email" matches "${MockDataService.mockEmail}"');
-          print('Mock account logged in via Firebase Auth - data will be handled by auth state listener');
-        } else {
-          print('Not a mock account. Email: "$email" does not match "${MockDataService.mockEmail}"');
-        }
 
         // Save login state
         final prefs = await SharedPreferences.getInstance();
@@ -132,7 +114,7 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      print('Login error: $e');
+      debugPrint('Login error: $e');
       _error = e.toString();
       _isLoading = false;
       notifyListeners();

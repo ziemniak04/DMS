@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dexcom/dexcom.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dms_app/models/glucose_reading.dart';
@@ -36,7 +37,7 @@ class DexcomService {
       }
       return false;
     } catch (e) {
-      print('Failed to initialize Dexcom service: $e');
+      debugPrint('Failed to initialize Dexcom service: $e');
       return false;
     }
   }
@@ -82,7 +83,7 @@ class DexcomService {
       _isAuthenticated = false;
       return false;
     } catch (e) {
-      print('Dexcom authentication failed: $e');
+      debugPrint('Dexcom authentication failed: $e');
       _isAuthenticated = false;
       return false;
     }
@@ -104,7 +105,7 @@ class DexcomService {
       final dexcomReading = readings.first;
       return _convertToGlucoseReading(dexcomReading, patientId);
     } catch (e) {
-      print('Failed to get current reading: $e');
+      debugPrint('Failed to get current reading: $e');
       // Try to re-authenticate once
       if (_username != null && _password != null && _region != null) {
         await authenticate(_username!, _password!, region: _region!, saveCredentials: false);
@@ -146,7 +147,7 @@ class DexcomService {
           .map((r) => _convertToGlucoseReading(r, patientId))
           .toList();
     } catch (e) {
-      print('Failed to get readings: $e');
+      debugPrint('Failed to get readings: $e');
       rethrow;
     }
   }
@@ -183,7 +184,7 @@ class DexcomService {
           .map((r) => _convertToGlucoseReading(r, patientId))
           .toList();
     } catch (e) {
-      print('Failed to get full history: $e');
+      debugPrint('Failed to get full history: $e');
       rethrow;
     }
   }
@@ -255,7 +256,7 @@ class DexcomService {
         message: message,
       );
     } catch (e) {
-      print('Failed to get history with status: $e');
+      debugPrint('Failed to get history with status: $e');
       return DexcomHistoryResult(
         readings: [],
         sensorActive: false,
@@ -372,7 +373,7 @@ class DexcomService {
       await prefs.setString(_prefKeyPassword, password);
       await prefs.setString(_prefKeyRegion, region);
     } catch (e) {
-      print('Failed to save Dexcom credentials: $e');
+      debugPrint('Failed to save Dexcom credentials: $e');
     }
   }
 
@@ -390,7 +391,7 @@ class DexcomService {
       _dexcom = null;
       _isAuthenticated = false;
     } catch (e) {
-      print('Failed to clear Dexcom credentials: $e');
+      debugPrint('Failed to clear Dexcom credentials: $e');
     }
   }
 

@@ -4,8 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:intl/intl.dart';
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 
 /// Data Sync Service for Dexcom Integration
 /// 
@@ -65,7 +65,7 @@ class DataSyncService {
         throw Exception('Sync failed: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error in manual sync: $e');
+      debugPrint('Error in manual sync: $e');
       rethrow;
     }
   }
@@ -84,12 +84,12 @@ class DataSyncService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         _updateLocalSyncStatus('auto_enabled', data);
-        print('Auto sync enabled: ${data['message']}');
+        debugPrint('Auto sync enabled: ${data['message']}');
       } else {
         throw Exception('Failed to enable auto sync: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error enabling auto sync: $e');
+      debugPrint('Error enabling auto sync: $e');
       rethrow;
     }
   }
@@ -105,12 +105,12 @@ class DataSyncService {
 
       if (response.statusCode == 200) {
         _updateLocalSyncStatus('auto_disabled', {});
-        print('Auto sync disabled');
+        debugPrint('Auto sync disabled');
       } else {
         throw Exception('Failed to disable auto sync: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error disabling auto sync: $e');
+      debugPrint('Error disabling auto sync: $e');
       rethrow;
     }
   }
@@ -130,7 +130,7 @@ class DataSyncService {
         throw Exception('Failed to get sync status: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error getting sync status: $e');
+      debugPrint('Error getting sync status: $e');
       rethrow;
     }
   }
@@ -160,7 +160,7 @@ class DataSyncService {
         throw Exception('Failed to get readings: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error getting glucose readings: $e');
+      debugPrint('Error getting glucose readings: $e');
       rethrow;
     }
   }
@@ -184,7 +184,7 @@ class DataSyncService {
         throw Exception('Failed to get latest reading: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error getting latest reading: $e');
+      debugPrint('Error getting latest reading: $e');
       rethrow;
     }
   }
@@ -219,7 +219,7 @@ class DataSyncService {
         throw Exception('Failed to get events: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error getting events: $e');
+      debugPrint('Error getting events: $e');
       rethrow;
     }
   }
@@ -249,7 +249,7 @@ class DataSyncService {
         throw Exception('Failed to get stats: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error getting daily stats: $e');
+      debugPrint('Error getting daily stats: $e');
       rethrow;
     }
   }
@@ -327,7 +327,7 @@ class DataSyncService {
           .collection('events')
           .add(event.toJson());
     } catch (e) {
-      print('Error storing event: $e');
+      debugPrint('Error storing event: $e');
       rethrow;
     }
   }
@@ -336,7 +336,7 @@ class DataSyncService {
 
   void _updateLocalSyncStatus(String status, Map<String, dynamic> data) {
     // Store sync status and timestamp locally for quick access
-    print('Sync status updated: $status');
+    debugPrint('Sync status updated: $status');
     // Could use SharedPreferences for persistent local storage
   }
 
@@ -376,7 +376,7 @@ class DataSyncService {
         'timestamp': DateTime.now(),
       };
     } catch (e) {
-      print('Error getting sync stats: $e');
+      debugPrint('Error getting sync stats: $e');
       rethrow;
     }
   }

@@ -107,15 +107,15 @@ class GlucoseProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('Loading glucose readings from Firestore for patientId: $patientId');
+      debugPrint('Loading glucose readings from Firestore for patientId: $patientId');
       _readings = await _firestoreService.getGlucoseReadings(patientId, hours: hours);
       _currentReading = _readings.isNotEmpty ? _readings.last : null;
       _sensorConnected = false; // Firestore data, not real sensor
-      print('Loaded ${_readings.length} glucose readings from Firestore');
+      debugPrint('Loaded ${_readings.length} glucose readings from Firestore');
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      print('Error loading glucose readings from Firestore: $e');
+      debugPrint('Error loading glucose readings from Firestore: $e');
       _error = 'Failed to load glucose readings from database: ${e.toString()}';
       _isLoading = false;
       notifyListeners();
