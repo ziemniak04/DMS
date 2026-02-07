@@ -59,15 +59,15 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     final patientId = authProvider.currentUser?.id ?? 'demo';
     final userEmail = authProvider.currentUser?.email ?? '';
 
-    print('Loading data for user: $userEmail, patientId: $patientId');
+    debugPrint('Loading data for user: $userEmail, patientId: $patientId');
 
     // Check if this is the mock account first
     if (userEmail == 'mocked@test.pl') {
-      print('Loading mock data from Firestore...');
+      debugPrint('Loading mock data from Firestore...');
       // Load mock data from Firestore directly
       await glucoseProvider.loadGlucoseReadingsFromFirestore(patientId);
       await eventsProvider.loadEvents(patientId, isMockAccount: true);
-      print('Mock data loaded. Readings: ${glucoseProvider.readings.length}');
+      debugPrint('Mock data loaded. Readings: ${glucoseProvider.readings.length}');
       return;
     }
 

@@ -53,7 +53,7 @@ class SettingsProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       // Use defaults if SharedPreferences fails
-      print('Error loading settings: $e');
+      debugPrint('Error loading settings: $e');
     }
   }
 

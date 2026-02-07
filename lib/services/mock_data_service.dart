@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dms_app/models/glucose_reading.dart';
@@ -6,19 +7,52 @@ import 'package:dms_app/models/glucose_reading.dart';
 class MockDataService {
   static const String mockEmail = 'mocked@test.pl';
 
-  /// Check if mock data already exists for a user
+  /// Maximum age of mock data before it's considered stale and regenerated
+  static const int maxDataAgeDays = 7;
+
+  /// Check if mock data already exists for a user and is still fresh
   static Future<bool> hasMockData(String userId) async {
     try {
       final firestore = FirebaseFirestore.instance;
+
+      // Check for actual readings and verify freshness
       final readingsSnapshot = await firestore
           .collection('glucoseReadings')
           .where('patientId', isEqualTo: userId)
-          .limit(1)
           .get();
 
-      return readingsSnapshot.docs.isNotEmpty;
+      if (readingsSnapshot.docs.isEmpty) {
+        return false;
+      }
+
+      // Find the most recent timestamp to check for staleness
+      DateTime? mostRecent;
+      for (final doc in readingsSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>?;
+        final tsRaw = data?['timestamp'];
+        if (tsRaw is String) {
+          try {
+            final ts = DateTime.parse(tsRaw);
+            if (mostRecent == null || ts.isAfter(mostRecent)) {
+              mostRecent = ts;
+            }
+          } catch (_) {}
+        }
+      }
+
+      if (mostRecent == null) {
+        return false;
+      }
+
+      final age = DateTime.now().difference(mostRecent);
+      if (age.inDays > maxDataAgeDays) {
+        debugPrint('Mock data is stale (${age.inDays} days old), will regenerate');
+        return false;
+      }
+
+      return true;
     } catch (e) {
-      print('Error checking for existing mock data: $e');
+      debugPrint('Error checking for existing mock data: $e');
       return false;
     }
   }
@@ -27,15 +61,26 @@ class MockDataService {
   static Future<void> generateMockData(String userId) async {
     final firestore = FirebaseFirestore.instance;
 
-    print('Checking if mock data exists for userId: $userId');
+    debugPrint('Checking if mock data exists for userId: $userId');
 
     // Check if data already exists
     if (await hasMockData(userId)) {
-      print('Mock data already exists for userId: $userId, skipping generation');
+      debugPrint('Mock data already exists for userId: $userId, skipping generation');
       return;
     }
 
-    print('Generating mock data for userId: $userId');
+    debugPrint('Generating mock data for userId: $userId');
+
+    // Create a status document to prevent concurrent generation
+    try {
+      await firestore.collection('mock_data_status').doc(userId).set({
+        'userId': userId,
+        'generatedAt': FieldValue.serverTimestamp(),
+        'status': 'generating',
+      });
+    } catch (e) {
+      debugPrint('Status document might already exist, proceeding with generation');
+    }
 
     // Create user document first
     await _createMockUserDocument(userId);
@@ -50,7 +95,13 @@ class MockDataService {
       await _generateDayData(userId, date);
     }
 
-    print('Mock data generation completed for userId: $userId');
+    // Update status to completed
+    await firestore.collection('mock_data_status').doc(userId).update({
+      'status': 'completed',
+      'completedAt': FieldValue.serverTimestamp(),
+    });
+
+    debugPrint('Mock data generation completed for userId: $userId');
   }
 
   static Future<void> _createMockUserDocument(String userId) async {

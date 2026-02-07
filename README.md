@@ -1,134 +1,299 @@
 # DMS - Diabetes Management System
 
-```
-mocked account mail/pass:
-mocked@test.pl
-123456
-```
+[![Flutter](https://img.shields.io/badge/Flutter-3.9.2+-02569B?logo=flutter)](https://flutter.dev)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115.0-009688?logo=fastapi)](https://fastapi.tiangolo.com)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A comprehensive Flutter application for tracking glucose levels using continuous glucose monitoring (CGM) sensors. The app supports two user roles: **Patients** and **Doctors**.
+A comprehensive cross-platform diabetes management system featuring real-time glucose monitoring, AI-powered insights, and seamless integration with Dexcom CGM sensors.
 
-## Getting Started
+## Features
+
+### For Patients
+- Real-time glucose monitoring with Dexcom CGM integration
+- Interactive glucose charts with multiple time ranges (3h, 6h, 12h, 24h)
+- Diabetes event tracking (meals, insulin doses, exercise, sleep)
+- AI-powered glucose analysis and personalized recommendations
+- Smart notifications for high/low glucose alerts
+- Historical data visualization and trend analysis
+
+### For Doctors
+- Patient dashboard with real-time glucose monitoring
+- Alert management system for patient glucose levels
+- Patient invitation and connection system (planned)
+- Historical data review and analysis
+
+### Backend Features
+- Secure Dexcom API integration with OAuth 2.0
+- Firebase Authentication and Firestore database
+- Encrypted token storage for sensitive data
+- Rate-limited API access (60,000 requests/hour)
+- Docker containerization with PostgreSQL support
+
+## Quick Start
 
 ### Prerequisites
-- Flutter SDK (3.9.2+)
-- Dart SDK
-- Android Studio, Xcode, or Visual Studio Code
-- Android device/emulator or web browser
+- **Flutter SDK**: 3.9.2 or higher ([Install Flutter](https://docs.flutter.dev/get-started/install))
+- **Dart SDK**: Included with Flutter
+- **Firebase Account**: For authentication ([Firebase Console](https://console.firebase.google.com))
+- **Docker** (optional): For running the backend ([Install Docker](https://docs.docker.com/get-docker/))
 
-### Installation
+### Frontend Setup
 
-1. Clone the repository
+1. **Clone the repository**
 ```bash
-git clone <repo-url>
-cd DMS/dms_app
+git clone https://github.com/ziemniak04/DMS.git
+cd DMS
 ```
 
-2. Get dependencies
+2. **Install dependencies**
 ```bash
 flutter pub get
 ```
 
-3. Run the app
+3. **Configure Firebase** (if using real Firebase)
+   - Add your `google-services.json` (Android) to `android/app/`
+   - Add your `GoogleService-Info.plist` (iOS) to `ios/Runner/`
+   - Update `lib/firebase_options.dart` with your Firebase config
+
+4. **Run the app**
 ```bash
-flutter run        # For desktop (requires Visual Studio setup)
-flutter run -d edge # For web (recommended for development)
-flutter run -d android # For Android emulator
+# Web (recommended for development)
+flutter run -d chrome
+
+# Android
+flutter run -d android
+
+# iOS
+flutter run -d ios
+
+# Windows/Linux/macOS
+flutter run -d windows  # or linux, macos
 ```
 
-### Demo Credentials
+### Backend Setup (Optional)
 
-Test the app with these mock credentials:
+The backend is required for Dexcom integration and production deployment.
 
-**Patient Login:**
-- Email: `patient@demo.com`
-- Password: (any non-empty string)
+1. **Navigate to backend directory**
+```bash
+cd backend
+```
 
-**Doctor Login:**
-- Email: `doctor@demo.com` 
-- Password: (any non-empty string)
+2. **Create environment file**
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+3. **Start with Docker Compose**
+```bash
+docker-compose up -d
+```
+
+The backend API will be available at `http://localhost:8000`
+
+API Documentation: `http://localhost:8000/docs`
+
+## Demo Credentials
+
+Test the app immediately with the included mock account:
+
+**Mock Patient Account:**
+- Email: `mocked@test.pl`
+- Password: `123456`
+
+This account comes with 7 days of realistic Type 1 Diabetes mock data including:
+- Glucose readings (5-minute intervals)
+- Meal events (breakfast, lunch, dinner)
+- Insulin doses
+- Sleep tracking
+
+**Note**: The mock account generates data automatically on first login.
+
+## Project Structure
+
+```
+DMS/
+├── lib/                          # Flutter application source
+│   ├── core/                     # Core utilities and config
+│   │   ├── config.dart          # Application configuration
+│   │   ├── constants/           # App constants
+│   │   ├── router/              # Navigation setup
+│   │   └── theme/               # Material Design theme
+│   ├── features/                # Feature modules
+│   │   ├── auth/                # Authentication screens
+│   │   ├── patient/             # Patient dashboard & screens
+│   │   ├── doctor/              # Doctor dashboard & screens
+│   │   └── settings/            # Settings screens
+│   ├── models/                  # Data models
+│   ├── providers/               # State management (Provider pattern)
+│   ├── services/                # Business logic services
+│   │   ├── ai_assistant_service.dart
+│   │   ├── dexcom_service.dart
+│   │   ├── firestore_service.dart
+│   │   ├── mock_data_service.dart
+│   │   └── notification_service.dart
+│   └── widgets/                 # Reusable UI components
+│
+├── backend/                      # FastAPI backend
+│   ├── app/
+│   │   ├── routers/             # API endpoints
+│   │   ├── services/            # Business logic
+│   │   ├── models/              # Pydantic models
+│   │   └── utils/               # Utilities
+│   ├── docker-compose.yml       # Docker setup
+│   ├── Dockerfile               # Container definition
+│   └── requirements.txt         # Python dependencies
+│
+├── android/                      # Android-specific files
+├── ios/                          # iOS-specific files
+├── web/                          # Web-specific files
+├── windows/                      # Windows-specific files
+├── linux/                        # Linux-specific files
+└── macos/                        # macOS-specific files
+```
+
+## Configuration
+
+### Frontend Configuration
+
+Edit `lib/core/config.dart` to customize:
+- AI Assistant API endpoint and credentials
+- Feature flags (enable/disable features)
+- Mock account settings
+- Backend API URL
+- Glucose target ranges
+
+**Important**: For production deployment, move sensitive credentials to secure environment variables.
+
+### Backend Configuration
+
+Edit `backend/.env` with your settings:
+```bash
+# Dexcom API (get from https://developer.dexcom.com)
+DEXCOM_CLIENT_ID=your_client_id
+DEXCOM_CLIENT_SECRET=your_client_secret
+DEXCOM_REDIRECT_URI=http://localhost:8000/dexcom/auth/callback
+
+# Firebase
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_CREDENTIALS_PATH=/app/firebase-credentials.json
+
+# Database
+DATABASE_URL=postgresql://dms_user:dms_password@postgres:5432/dms
+
+# Encryption Key (generate with: python -c "from cryptography.fernet import Fernet; debugPrint(Fernet.generate_key().decode())")
+ENCRYPTION_KEY=your_encryption_key
+
+# CORS
+CORS_ORIGINS=http://localhost:3000,http://localhost:8080
+
+# Debug mode (set to false in production)
+DEBUG=true
+```
+
+## MVP Features Status
+
+### ✅ Completed for MVP
+- Authentication (Email/Password with Firebase)
+- Mock patient account with realistic data
+- Patient glucose dashboard with real-time display
+- Interactive glucose charts (multiple time ranges)
+- Glucose statistics and trends
+- AI-powered glucose analysis
+- Event tracking (meals, insulin, exercise)
+- Notification system with customizable alerts
+- Dexcom CGM integration (backend & frontend)
+- Dark mode support
+- Responsive Material Design 3 UI
+
+### 🚧 Planned Features
+- Doctor-patient connection system
+- Patient search for doctors
+- Detailed event timeline
+- Data export (PDF reports)
+- Multi-language support
+- Apple Health / Google Fit integration
+- Medication reminders
+- Carb counting calculator
 
 ## Contributing
 
 ### Branch Strategy
 
-We follow a **three-phase branching strategy** to keep development organized and ensure code quality:
+We use a **three-branch workflow**:
+- `master`: Production-ready code
+- `dev`: Integration branch for testing
+- `feature/*` or `fix/*`: Individual work branches
 
-```
-Your Work Branch (fix/feature-name)
-    ↓
-    └──→ Pull Request to: dev (Development)
-         └──→ Tested & Reviewed
-              └──→ Merge to: master (Production)
-                   └──→ Tag as Major Release
-```
+### Contribution Workflow
 
-### Workflow for Contributors
+1. Create a feature branch from `dev`
+2. Make your changes with clear commit messages
+3. Create a Pull Request to `dev`
+4. After review and testing, code is merged to `dev`
+5. Periodically, `dev` is merged to `master` for releases
 
-1. **Create a Feature/Fix Branch**
-   ```bash
-   git checkout dev
-   git pull origin dev
-   git checkout -b fix/your-feature-name
-   ```
-   - Use `fix/` for bug fixes
-   - Use `feature/` for new features
-   - Use `docs/` for documentation updates
+For detailed contribution guidelines, see [`.github/copilot-instructions.md`](.github/copilot-instructions.md).
 
-2. **Make Your Changes**
-   - Write clean, well-documented code
-   - Follow Flutter best practices
-   - Add placeholders with `TODO: [PLACEHOLDER]` for incomplete features
-   - Test thoroughly before committing
+## Troubleshooting
 
-3. **Push to Your Branch**
-   ```bash
-   git add .
-   git commit -m "Clear description of changes"
-   git push origin fix/your-feature-name
-   ```
+### Flutter App Won't Build
+```bash
+# Clean build cache
+flutter clean
+flutter pub get
+flutter pub upgrade
 
-4. **Create a Pull Request to `dev`**
-   - Go to GitHub and create a PR from `fix/your-feature-name` → `dev`
-   - Describe what you changed and why
-   - Wait for review and address feedback
-   - Once approved, your code is merged to `dev`
-
-5. **On Major Changes: Release to `master`**
-   - When a significant feature is complete and tested in `dev`
-   - Create a PR from `dev` → `master`
-   - Tag the commit with a version number (e.g., `v1.0.0`)
-   - This becomes the official production release
-
-### Branch Rules
-
-- ✅ **Always work on your own branch** (`fix/`, `feature/`, `docs/`)
-- ✅ **Always PR to `dev` first** for review and testing
-- ✅ **Only merge to `master`** when code is production-ready
-- ✅ **Tag releases** on `master` with semantic versioning
-- ❌ **Never commit directly** to `dev` or `master`
-
-### Example Timeline
-
-```
-Week 1: You work on fix/glucose-chart-colors
-        └─ Create PR: fix/glucose-chart-colors → dev ✓ Merged
-
-Week 2: You work on feature/bluetooth-sensor
-        └─ Create PR: feature/bluetooth-sensor → dev ✓ Merged
-
-Week 3: Another contributor works on feature/firebase-setup
-        └─ Create PR: feature/firebase-setup → dev ✓ Merged
-
-Week 4: All features tested in dev. Time for release!
-        └─ Create PR: dev → master
-        └─ Tag as v0.2.0
-        └─ Production release ready! 🚀
+# For iOS
+cd ios && pod install && cd ..
 ```
 
-## Project Structure
+### Firebase Connection Issues
+- Ensure `google-services.json` (Android) or `GoogleService-Info.plist` (iOS) are in the correct locations
+- Check that your Firebase project has Authentication and Firestore enabled
+- Verify your Firebase configuration in `lib/firebase_options.dart`
 
-See [`.github/copilot-instructions.md`](.github/copilot-instructions.md) for detailed project structure and placeholder locations.
+### Backend Won't Start
+```bash
+# Check Docker logs
+docker-compose logs backend
+
+# Rebuild containers
+docker-compose down
+docker-compose up --build
+```
+
+### Mock Account Not Generating Data
+- The data is generated automatically on first login
+- Check Firestore console for `glucoseReadings` collection
+- Ensure Firebase credentials are properly configured
+
+## Security Notes
+
+For MVP demonstration purposes, this project includes:
+- A mock patient account with demo credentials
+- Configuration values in source code
+
+**For production deployment:**
+- Move all API keys and credentials to environment variables
+- Enable Firebase security rules
+- Use proper secret management (e.g., AWS Secrets Manager, Azure Key Vault)
+- Set `DEBUG=false` in backend configuration
+- Configure proper CORS origins (no wildcards)
+- Enable HTTPS for all endpoints
+- Implement proper authentication middleware in backend
+
+## License
+
+This project is developed as part of a cross-platform development course at Wrocław University of Science and Technology.
+
+## Acknowledgments
+
+- **Dexcom**: For providing the CGM API
+- **Firebase**: For authentication and database services
+- **Flutter Team**: For the amazing cross-platform framework
+- **FastAPI**: For the high-performance Python backend framework
 
 ## Resources
 
@@ -137,3 +302,10 @@ See [`.github/copilot-instructions.md`](.github/copilot-instructions.md) for det
 - [Material Design 3](https://m3.material.io/)
 - [Provider Package](https://pub.dev/packages/provider)
 - [GoRouter Package](https://pub.dev/packages/go_router)
+- [Dexcom Developer Portal](https://developer.dexcom.com/)
+- [Firebase Documentation](https://firebase.google.com/docs)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+
+## Support
+
+For issues and feature requests, please use the [GitHub Issues](https://github.com/ziemniak04/DMS/issues) page.
