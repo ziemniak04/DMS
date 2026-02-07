@@ -16,6 +16,7 @@ import 'package:dms_app/core/theme/app_theme.dart';
 import 'package:dms_app/core/constants/app_constants.dart';
 import 'package:dms_app/models/glucose_reading.dart';
 import 'package:dms_app/services/dexcom_service.dart';
+import 'package:dms_app/features/patient/screens/patient_connections_screen.dart';
 
 /// Patient Dashboard Screen
 /// Main screen for patients to view glucose data
@@ -189,37 +190,107 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
   Widget _buildHeader() {
     return Consumer<SettingsProvider>(
       builder: (context, settings, child) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
+        return Container(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Theme Toggle Button
-              IconButton(
-                icon: Icon(
-                  settings.themeMode == ThemeMode.dark
-                      ? Icons.light_mode
-                      : Icons.dark_mode,
+              // Welcome Text
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Welcome back',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Consumer<AuthProvider>(
+                      builder: (context, auth, _) {
+                        final email = auth.currentUser?.email ?? 'user@example.com';
+                        final name = email.split('@').first;
+                        return Text(
+                          name,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                onPressed: () {
-                  // Cycle through themes
-                  final nextTheme = settings.themeMode == ThemeMode.light
-                      ? ThemeMode.dark
-                      : settings.themeMode == ThemeMode.dark
-                          ? ThemeMode.system
-                          : ThemeMode.light;
-                  settings.setThemeMode(nextTheme);
-                },
-                tooltip: 'Toggle theme',
               ),
-              // Profile Avatar
-              GestureDetector(
-                onTap: () => setState(() => _currentNavIndex = 3),
-                child: CircleAvatar(
-                  radius: 24,
-                  backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
-                  child: const Icon(Icons.person, color: AppTheme.primaryColor),
-                ),
+              Row(
+                children: [
+                  // Theme Toggle Button
+                  Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        settings.themeMode == ThemeMode.dark
+                            ? Icons.light_mode_rounded
+                            : Icons.dark_mode_rounded,
+                        color: AppTheme.primaryColor,
+                        size: 22,
+                      ),
+                      onPressed: () {
+                        final nextTheme = settings.themeMode == ThemeMode.light
+                            ? ThemeMode.dark
+                            : settings.themeMode == ThemeMode.dark
+                                ? ThemeMode.system
+                                : ThemeMode.light;
+                        settings.setThemeMode(nextTheme);
+                      },
+                      tooltip: 'Toggle theme',
+                    ),
+                  ),
+                  // Profile Avatar
+                  GestureDetector(
+                    onTap: () => setState(() => _currentNavIndex = 3),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppTheme.primaryColor,
+                            AppTheme.primaryColor.withValues(alpha: 0.7),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Colors.transparent,
+                        child: Icon(Icons.person_rounded, color: Colors.white, size: 26),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -234,26 +305,66 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
         final hasAlerts = glucose.currentReading != null &&
             (glucose.currentReading!.value < AppConstants.glucoseLowThreshold ||
              glucose.currentReading!.value > AppConstants.glucoseVeryHighThreshold);
-        
+
+        final alertColor = hasAlerts ? AppTheme.errorColor : AppTheme.glucoseNormal;
+        final icon = hasAlerts ? Icons.warning_rounded : Icons.check_circle_rounded;
+        final title = hasAlerts ? 'Alert' : 'All Good';
+        final subtitle = hasAlerts
+            ? 'Glucose level requires attention'
+            : 'Your glucose is in target range';
+
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          padding: const EdgeInsets.all(24),
+          margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                alertColor.withValues(alpha: 0.1),
+                alertColor.withValues(alpha: 0.05),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: alertColor.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
           ),
-          child: Column(
+          child: Row(
             children: [
-              Icon(
-                hasAlerts ? Icons.warning_amber : Icons.warning_amber,
-                size: 40,
-                color: hasAlerts ? AppTheme.errorColor : AppTheme.errorColor,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: alertColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  icon,
+                  size: 32,
+                  color: alertColor,
+                ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                hasAlerts ? 'Warning!' : 'No warnings',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: alertColor,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -267,57 +378,71 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     return Consumer<GlucoseProvider>(
       builder: (context, glucose, child) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: Column(
             children: [
-              ElevatedButton.icon(
-                onPressed: () async {
-                  // Navigate to Dexcom connection screen
-                  await context.push('/settings/dexcom');
-
-                  // Refresh data after returning
-                  if (mounted) {
-                    _loadData();
-                  }
-                },
-                icon: Icon(
-                  glucose.sensorConnected ? Icons.sensors : Icons.sensor_occupied,
-                  size: 20,
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: glucose.sensorConnected
-                      ? AppTheme.secondaryColor
-                      : Colors.grey.shade600,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: glucose.sensorConnected
+                        ? [AppTheme.secondaryColor, AppTheme.secondaryColor.withValues(alpha: 0.8)]
+                        : [Colors.grey.shade600, Colors.grey.shade700],
                   ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (glucose.sensorConnected ? AppTheme.secondaryColor : Colors.grey)
+                          .withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-                label: Text(
-                  glucose.sensorConnected ? 'Sensor connected' : 'Connect sensor',
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    await context.push('/settings/dexcom');
+                    if (mounted) _loadData();
+                  },
+                  icon: Icon(
+                    glucose.sensorConnected ? Icons.sensors_rounded : Icons.sensor_occupied_rounded,
+                    size: 22,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  label: Text(
+                    glucose.sensorConnected ? 'Sensor connected' : 'Connect sensor',
+                    style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
-              // Demo Analysis Button
-              ElevatedButton.icon(
+              OutlinedButton.icon(
                 onPressed: () {
                   showDialog(
                     context: context,
                     builder: (context) => const AnalysisDemoDialog(),
                   );
                 },
-                icon: const Icon(Icons.analytics, size: 20),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                icon: const Icon(Icons.analytics_rounded, size: 20),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(20),
                   ),
+                  side: BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.5), width: 1.5),
                 ),
                 label: const Text(
                   'View Analysis Demo',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -338,23 +463,30 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
         final isLoading = glucose.isLoading;
 
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: const EdgeInsets.all(24),
+          margin: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
                 AppTheme.primaryColor,
-                AppTheme.primaryColor.withValues(alpha: 0.8),
+                AppTheme.primaryColor.withValues(alpha: 0.85),
+                AppTheme.tertiaryColor,
               ],
             ),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
+                color: AppTheme.primaryColor.withValues(alpha: 0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+                spreadRadius: 2,
+              ),
+              BoxShadow(
+                color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                blurRadius: 40,
+                offset: const Offset(0, 16),
               ),
             ],
           ),
@@ -520,11 +652,18 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     return Consumer<GlucoseProvider>(
       builder: (context, glucose, child) {
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             children: [
@@ -543,24 +682,34 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                               _selectedTimeRange = hours;
                             });
                           },
-                          child: Container(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
+                              horizontal: 16,
+                              vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: isSelected 
-                                  ? AppTheme.secondaryColor.withValues(alpha: 0.15)
+                              color: isSelected
+                                  ? AppTheme.primaryColor
                                   : Colors.transparent,
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(14),
+                              border: isSelected
+                                  ? null
+                                  : Border.all(
+                                      color: AppTheme.dividerColor,
+                                      width: 1,
+                                    ),
                             ),
                             child: Text(
-                              hours == 24 ? '24 hrs' : '$hours',
+                              hours == 24 ? '24h' : '${hours}h',
                               style: TextStyle(
-                                fontWeight: isSelected 
-                                    ? FontWeight.bold 
-                                    : FontWeight.normal,
-                                color: AppTheme.textPrimary,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppTheme.textSecondary,
+                                fontSize: 13,
                               ),
                             ),
                           ),
@@ -656,39 +805,77 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
 
   Widget _buildClarityCard() {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppTheme.secondaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.secondaryColor.withValues(alpha: 0.2),
+                  AppTheme.secondaryColor.withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(
-              Icons.bar_chart,
+              Icons.bar_chart_rounded,
               color: AppTheme.secondaryColor,
+              size: 28,
             ),
           ),
-          const SizedBox(width: 12),
-          const Text(
-            'Clarity',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Clarity Reports',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'View detailed insights',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
             ),
           ),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              // TODO: [PLACEHOLDER] Show Clarity info
-            },
+          Container(
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.arrow_forward_rounded,
+                color: AppTheme.primaryColor,
+              ),
+              onPressed: () {
+                // TODO: [PLACEHOLDER] Show Clarity info
+              },
+            ),
           ),
         ],
       ),
@@ -741,46 +928,105 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
   }
 
   Widget _buildConnectionsPlaceholder() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.share, size: 64, color: AppTheme.textSecondary),
-          SizedBox(height: 16),
-          Text(
-            'Connections',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'TODO: [PLACEHOLDER] Implement connections/sharing',
-            style: TextStyle(color: AppTheme.textSecondary),
-          ),
-        ],
-      ),
-    );
+    return const PatientConnectionsScreen();
   }
 
   Widget _buildProfilePlaceholder() {
     return Consumer<SettingsProvider>(
       builder: (context, settings, child) {
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Profile',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              // Profile Header
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.primaryColor.withValues(alpha: 0.1),
+                      AppTheme.secondaryColor.withValues(alpha: 0.05),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppTheme.primaryColor,
+                            AppTheme.primaryColor.withValues(alpha: 0.7),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const CircleAvatar(
+                        radius: 36,
+                        backgroundColor: Colors.transparent,
+                        child: Icon(Icons.person_rounded, color: Colors.white, size: 36),
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Consumer<AuthProvider>(
+                        builder: (context, auth, _) {
+                          final email = auth.currentUser?.email ?? 'user@example.com';
+                          final name = email.split('@').first;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                email,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               
               // App Settings Section
-              const Text(
-                'App Settings',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 12),
+                child: Text(
+                  'App Settings',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                    letterSpacing: 0.3,
+                  ),
+                ),
               ),
-              const SizedBox(height: 8),
               _buildSettingsItem(
                 icon: Icons.palette_outlined,
                 title: 'Theme',
@@ -813,11 +1059,18 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
               const SizedBox(height: 24),
               
               // Phone Settings Section
-              const Text(
-                'Phone Settings',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 12),
+                child: Text(
+                  'Phone Settings',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                    letterSpacing: 0.3,
+                  ),
+                ),
               ),
-              const SizedBox(height: 8),
               _buildSettingsItem(
                 icon: Icons.phone_android,
                 title: 'G7 app security on Android devices',
@@ -828,18 +1081,48 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
               const SizedBox(height: 24),
               
               // Logout Button
-              ElevatedButton.icon(
-                onPressed: () async {
-                  await context.read<AuthProvider>().logout();
-                  if (mounted) {
-                    context.go('/login');
-                  }
-                },
-                icon: const Icon(Icons.logout),
-                label: const Text('Sign Out'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.errorColor,
-                  foregroundColor: Colors.white,
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.errorColor,
+                      AppTheme.errorColor.withValues(alpha: 0.8),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.errorColor.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    await context.read<AuthProvider>().logout();
+                    if (mounted) {
+                      context.go('/login');
+                    }
+                  },
+                  icon: const Icon(Icons.logout_rounded, size: 20),
+                  label: const Text(
+                    'Sign Out',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    shadowColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -913,12 +1196,59 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     String? subtitle,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      leading: Icon(icon, color: AppTheme.textSecondary),
-      title: Text(title),
-      subtitle: subtitle != null ? Text(subtitle) : null,
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.dividerColor,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: AppTheme.primaryColor, size: 22),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+          ),
+        ),
+        subtitle: subtitle != null
+            ? Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              )
+            : null,
+        trailing: Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 16,
+          color: AppTheme.textSecondary,
+        ),
+        onTap: onTap,
+      ),
     );
   }
 
@@ -929,14 +1259,67 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    return ListTile(
-      leading: Icon(icon, color: AppTheme.textSecondary),
-      title: Text(title),
-      subtitle: subtitle != null ? Text(subtitle) : null,
-      trailing: Switch(
-        value: value,
-        onChanged: onChanged,
-        activeTrackColor: AppTheme.secondaryColor,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: value
+              ? AppTheme.secondaryColor.withValues(alpha: 0.3)
+              : AppTheme.dividerColor,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: value
+                ? AppTheme.secondaryColor.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: value
+                ? AppTheme.secondaryColor.withValues(alpha: 0.15)
+                : AppTheme.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            color: value ? AppTheme.secondaryColor : AppTheme.primaryColor,
+            size: 22,
+          ),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+          ),
+        ),
+        subtitle: subtitle != null
+            ? Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              )
+            : null,
+        trailing: Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: AppTheme.secondaryColor,
+        ),
       ),
     );
   }
