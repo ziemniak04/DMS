@@ -113,6 +113,23 @@ class FirestoreService {
     }
   }
 
+  /// Get user by email
+  Future<User?> getUserByEmail(String email) async {
+    try {
+      final snapshot = await usersCollection
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        return User.fromJson(snapshot.docs.first.data() as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      throw 'Error fetching user by email: ${e.toString()}';
+    }
+  }
+
   /// Stream of user data
   Stream<User?> getUserStream(String userId) {
     return usersCollection.doc(userId).snapshots().map((snapshot) {
