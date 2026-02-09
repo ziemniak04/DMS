@@ -72,11 +72,24 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
       return;
     }
 
-    // Try to initialize Dexcom with stored credentials
-    await glucoseProvider.initializeDexcom(patientId);
+    // Check if the user has Dexcom credentials stored
+    final hasDexcomCredentials = await glucoseProvider.hasDexcomCredentials();
 
-    // If not connected, load local mock data for demo purposes
-    if (!glucoseProvider.sensorConnected) {
+    if (hasDexcomCredentials) {
+      // User has Dexcom configured — always use Dexcom data path
+      debugPrint('Dexcom credentials found, initializing Dexcom...');
+      await glucoseProvider.initializeDexcom(patientId);
+
+      if (glucoseProvider.sensorConnected) {
+        debugPrint('Dexcom connected. Readings: ${glucoseProvider.readings.length}');
+      } else {
+        // Dexcom is configured but failed to connect — do NOT fall back to mock data
+        debugPrint('Dexcom configured but not connected. Error: ${glucoseProvider.error}');
+      }
+      await eventsProvider.loadEvents(patientId);
+    } else {
+      // No Dexcom credentials — use local mock data for demo purposes
+      debugPrint('No Dexcom credentials, loading local mock data...');
       await glucoseProvider.initializeMockData(patientId);
       await eventsProvider.loadEvents(patientId);
     }
@@ -175,6 +188,13 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     final authProvider = context.read<AuthProvider>();
     final glucoseProvider = context.read<GlucoseProvider>();
     final patientId = authProvider.currentUser?.id ?? 'demo';
+    final userEmail = authProvider.currentUser?.email ?? '';
+
+    // Mock account always refreshes from Firestore
+    if (userEmail == 'mocked@test.pl') {
+      await glucoseProvider.loadGlucoseReadingsFromFirestore(patientId);
+      return;
+    }
 
     if (glucoseProvider.sensorConnected) {
       // Refresh current reading from Dexcom
@@ -182,8 +202,16 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
       // Reload glucose readings
       await glucoseProvider.loadGlucoseReadings(patientId, hours: 24);
     } else {
-      // Try to reconnect
-      _loadData();
+      // Check if Dexcom is configured before deciding what to do
+      final hasDexcomCredentials = await glucoseProvider.hasDexcomCredentials();
+      if (hasDexcomCredentials) {
+        // Try to reconnect Dexcom only — do NOT fall back to mock data
+        debugPrint('Refreshing: attempting Dexcom reconnection...');
+        await glucoseProvider.initializeDexcom(patientId);
+      } else {
+        // No Dexcom configured, reload mock data
+        _loadData();
+      }
     }
   }
 

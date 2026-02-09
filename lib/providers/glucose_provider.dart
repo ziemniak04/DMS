@@ -38,15 +38,20 @@ class GlucoseProvider extends ChangeNotifier {
 
     try {
       // Try to authenticate with stored credentials
+      debugPrint('[GlucoseProvider] Attempting Dexcom authentication for patientId: $patientId');
       final authenticated = await _dexcomService.initialize();
 
       if (authenticated) {
         _sensorConnected = true;
+        debugPrint('[GlucoseProvider] Dexcom authenticated, loading readings...');
         // Load glucose readings for the last 24 hours
         await loadGlucoseReadings(patientId, hours: 24);
+        debugPrint('[GlucoseProvider] Loaded ${_readings.length} readings from Dexcom. '
+            'Current: ${_currentReading?.value} mg/dL');
       } else {
         _sensorConnected = false;
         _error = 'Dexcom not connected. Please authenticate.';
+        debugPrint('[GlucoseProvider] Dexcom authentication failed');
       }
 
       _isLoading = false;
@@ -55,6 +60,7 @@ class GlucoseProvider extends ChangeNotifier {
       _error = 'Failed to initialize Dexcom: ${e.toString()}';
       _isLoading = false;
       _sensorConnected = false;
+      debugPrint('[GlucoseProvider] Dexcom init exception: $e');
       notifyListeners();
     }
   }
@@ -83,6 +89,7 @@ class GlucoseProvider extends ChangeNotifier {
   Future<void> loadGlucoseReadings(String patientId, {int hours = 24}) async {
     if (!_dexcomService.isAuthenticated) {
       _error = 'Not authenticated with Dexcom';
+      debugPrint('[GlucoseProvider] loadGlucoseReadings: not authenticated');
       notifyListeners();
       return;
     }
@@ -93,9 +100,17 @@ class GlucoseProvider extends ChangeNotifier {
         minutes: hours * 60,
       );
       _currentReading = _readings.isNotEmpty ? _readings.last : null;
+      debugPrint('[GlucoseProvider] loadGlucoseReadings: got ${_readings.length} readings from Dexcom');
+      if (_readings.isNotEmpty) {
+        final values = _readings.map((r) => r.value);
+        debugPrint('[GlucoseProvider] Dexcom range: min=${values.reduce((a, b) => a < b ? a : b)}, '
+            'max=${values.reduce((a, b) => a > b ? a : b)}, '
+            'latest=${_currentReading?.value} at ${_currentReading?.timestamp}');
+      }
       notifyListeners();
     } catch (e) {
       _error = 'Failed to load glucose readings: ${e.toString()}';
+      debugPrint('[GlucoseProvider] loadGlucoseReadings error: $e');
       notifyListeners();
     }
   }

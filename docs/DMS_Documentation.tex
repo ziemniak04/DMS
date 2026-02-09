@@ -1,0 +1,545 @@
+\documentclass[12pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tcolorbox}
+\usepackage{fontawesome5}
+
+% Colors
+\definecolor{primarygreen}{RGB}{76, 175, 80}
+\definecolor{flutterblue}{RGB}{2, 86, 155}
+\definecolor{fastapigreen}{RGB}{0, 150, 136}
+\definecolor{codebg}{RGB}{245, 245, 245}
+\definecolor{linkblue}{RGB}{0, 102, 204}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=linkblue,
+    urlcolor=linkblue,
+    citecolor=linkblue,
+    pdftitle={DMS - Diabetes Management System Documentation},
+    pdfauthor={DMS Development Team},
+}
+
+% Code listings style
+\lstset{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{gray!30},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{flutterblue}\bfseries,
+    commentstyle=\color{gray},
+    stringstyle=\color{primarygreen},
+}
+
+% Header/Footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{primarygreen}{\textbf{DMS}} - Diabetes Management System}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{\small Wrocław University of Science and Technology}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Title formatting
+\titleformat{\section}
+    {\Large\bfseries\color{primarygreen}}{\thesection}{1em}{}
+\titleformat{\subsection}
+    {\large\bfseries\color{flutterblue}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+    {\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+% Custom box for important notes
+\newtcolorbox{importantbox}{
+    colback=primarygreen!10,
+    colframe=primarygreen,
+    title={\faExclamationTriangle\ Important},
+    fonttitle=\bfseries
+}
+
+\newtcolorbox{featurebox}{
+    colback=flutterblue!5,
+    colframe=flutterblue,
+    fonttitle=\bfseries
+}
+
+% Document info
+\title{
+    \vspace{-1cm}
+    \textcolor{primarygreen}{\Huge\textbf{DMS}}\\[0.3cm]
+    \Large Diabetes Management System\\[0.5cm]
+    \large Technical Documentation \& Feature Overview
+}
+\author{
+    Cross-Platform Development Project\\
+    Wrocław University of Science and Technology
+}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+DMS (Diabetes Management System) is a comprehensive cross-platform mobile application designed for diabetes management. Built with Flutter and backed by Firebase and FastAPI, it provides real-time glucose monitoring through Dexcom CGM integration, AI-powered insights, and a dual-interface system for both patients and healthcare providers. This document provides a detailed overview of the system's architecture, features, and technical implementation.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+%==============================================================================
+\section{Introduction}
+%==============================================================================
+
+Diabetes mellitus affects over 537 million adults worldwide, making effective glucose management crucial for patient health outcomes. The Diabetes Management System (DMS) addresses this need by providing a modern, user-friendly application that integrates with continuous glucose monitoring (CGM) devices.
+
+\subsection{Project Goals}
+
+The primary objectives of DMS are:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Real-time Monitoring}: Provide seamless integration with Dexcom CGM sensors for continuous glucose tracking
+    \item \textbf{Data Visualization}: Present glucose data through intuitive, interactive charts
+    \item \textbf{AI-Powered Insights}: Leverage artificial intelligence to provide personalized recommendations
+    \item \textbf{Cross-Platform Availability}: Support multiple platforms (iOS, Android, Web, Desktop)
+    \item \textbf{Healthcare Provider Integration}: Enable doctors to monitor and support their patients remotely
+\end{itemize}
+
+\subsection{Target Users}
+
+DMS serves two primary user groups:
+
+\begin{enumerate}
+    \item \textbf{Patients}: Individuals with diabetes who need to monitor their glucose levels and track diabetes-related events
+    \item \textbf{Doctors/Healthcare Providers}: Medical professionals who oversee patient glucose management and provide recommendations
+\end{enumerate}
+
+%==============================================================================
+\section{Technology Stack}
+%==============================================================================
+
+DMS employs a modern, scalable technology stack optimized for cross-platform development and real-time data processing.
+
+\subsection{Frontend Technologies}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Technology} & \textbf{Version} & \textbf{Purpose} \\
+\midrule
+Flutter & 3.9.2+ & Cross-platform UI framework \\
+Dart & (bundled) & Programming language \\
+Provider & latest & State management \\
+GoRouter & latest & Navigation/routing \\
+FL Chart & latest & Data visualization \\
+Firebase Auth & 6.1.2 & User authentication \\
+Cloud Firestore & 6.1.0 & NoSQL database \\
+Dexcom Package & 1.0.7 & CGM integration \\
+\bottomrule
+\end{tabular}
+\caption{Frontend Technology Stack}
+\end{table}
+
+\subsection{Backend Technologies}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Technology} & \textbf{Version} & \textbf{Purpose} \\
+\midrule
+FastAPI & 0.115.0 & Python web framework \\
+PostgreSQL & latest & Relational database \\
+Docker & latest & Containerization \\
+Firebase Admin SDK & latest & Server-side Firebase access \\
+Cryptography & latest & Token encryption \\
+\bottomrule
+\end{tabular}
+\caption{Backend Technology Stack}
+\end{table}
+
+\subsection{External Services}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Dexcom Share API}: Real-time CGM data retrieval
+    \item \textbf{Firebase}: Authentication, database, and cloud functions
+    \item \textbf{AI/ML Service}: Claude API for glucose analysis and recommendations
+\end{itemize}
+
+%==============================================================================
+\section{Features Overview}
+%==============================================================================
+
+\subsection{Patient Features}
+
+The patient interface provides comprehensive tools for diabetes self-management:
+
+\subsubsection{Real-Time Glucose Monitoring}
+
+\begin{featurebox}
+\begin{itemize}[leftmargin=*]
+    \item Live glucose readings from Dexcom CGM sensors
+    \item Trend arrows indicating glucose direction (rising, falling, stable)
+    \item Color-coded values (green: in range, yellow: warning, red: critical)
+    \item Automatic data synchronization every 5 minutes
+\end{itemize}
+\end{featurebox}
+
+\subsubsection{Interactive Glucose Charts}
+
+Users can visualize their glucose data through customizable charts:
+
+\begin{itemize}[leftmargin=*]
+    \item Multiple time ranges: 3 hours, 6 hours, 12 hours, 24 hours
+    \item Target range visualization (customizable thresholds)
+    \item Trend line analysis
+    \item Touch-enabled data point inspection
+\end{itemize}
+
+\subsubsection{Event Tracking}
+
+DMS allows patients to log various diabetes-related events:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lp{8cm}@{}}
+\toprule
+\textbf{Event Type} & \textbf{Description} \\
+\midrule
+\faUtensils\ Meals & Log carbohydrate intake with meal type classification \\
+\faSyringe\ Insulin & Record insulin doses (bolus, basal, correction) \\
+\faRunning\ Exercise & Track physical activity duration and intensity \\
+\faBed\ Sleep & Monitor sleep patterns and their effect on glucose \\
+\faStickyNote\ Notes & Add custom notes and observations \\
+\bottomrule
+\end{tabular}
+\caption{Trackable Event Types}
+\end{table}
+
+\subsubsection{AI-Powered Analysis}
+
+The integrated AI assistant provides:
+
+\begin{itemize}[leftmargin=*]
+    \item Pattern recognition in glucose data
+    \item Personalized recommendations based on historical trends
+    \item Meal impact analysis
+    \item Insulin timing suggestions
+    \item Risk assessment for hypoglycemia/hyperglycemia
+\end{itemize}
+
+\subsubsection{Smart Notifications}
+
+Customizable alert system for:
+
+\begin{itemize}[leftmargin=*]
+    \item High glucose alerts (hyperglycemia)
+    \item Low glucose alerts (hypoglycemia)
+    \item Urgent low alerts (critical hypoglycemia)
+    \item Rapid rise/fall warnings
+    \item Customizable thresholds and sound preferences
+\end{itemize}
+
+\subsection{Doctor Features}
+
+Healthcare providers have access to specialized tools:
+
+\subsubsection{Patient Dashboard}
+
+\begin{itemize}[leftmargin=*]
+    \item Overview of all connected patients
+    \item Real-time glucose status for each patient
+    \item Alert indicators for patients requiring attention
+    \item Quick access to detailed patient views
+\end{itemize}
+
+\subsubsection{Alert Management}
+
+\begin{itemize}[leftmargin=*]
+    \item Centralized alert monitoring
+    \item Priority-based alert sorting
+    \item Historical alert review
+    \item One-click navigation to patient details
+\end{itemize}
+
+\subsubsection{Patient Detail View}
+
+Comprehensive patient data access including:
+
+\begin{itemize}[leftmargin=*]
+    \item Full glucose history with interactive charts
+    \item Event timeline (meals, insulin, exercise)
+    \item Statistical analysis (Time in Range, average glucose, variability)
+    \item Notes and recommendation functionality (planned)
+\end{itemize}
+
+%==============================================================================
+\section{System Architecture}
+%==============================================================================
+
+\subsection{Application Structure}
+
+The DMS Flutter application follows a feature-based modular architecture:
+
+\begin{lstlisting}[language=bash,caption=Project Structure]
+lib/
+├── core/               # Core utilities
+│   ├── config.dart     # App configuration
+│   ├── constants/      # Constants & thresholds
+│   ├── router/         # Navigation (GoRouter)
+│   └── theme/          # Material Design 3 theme
+├── features/           # Feature modules
+│   ├── auth/           # Authentication
+│   ├── patient/        # Patient screens
+│   ├── doctor/         # Doctor screens
+│   └── settings/       # Settings
+├── models/             # Data models
+├── providers/          # State management
+├── services/           # Business logic
+└── widgets/            # Reusable components
+\end{lstlisting}
+
+\subsection{Data Flow}
+
+\begin{enumerate}
+    \item \textbf{CGM Data Acquisition}: Dexcom sensor $\rightarrow$ Dexcom Share API $\rightarrow$ DMS Backend/App
+    \item \textbf{Data Storage}: App $\rightarrow$ Firebase Firestore $\rightarrow$ Real-time sync
+    \item \textbf{AI Analysis}: Glucose data $\rightarrow$ AI Service $\rightarrow$ Recommendations
+    \item \textbf{Notifications}: Alert triggers $\rightarrow$ Notification Service $\rightarrow$ User device
+\end{enumerate}
+
+\subsection{Dexcom Integration}
+
+DMS integrates with Dexcom CGM devices through the Dexcom Share API:
+
+\begin{importantbox}
+The Dexcom integration uses the unofficial Dexcom Share API. This should be used for \textbf{informational purposes only} and \textbf{NOT for critical medical treatment decisions}.
+\end{importantbox}
+
+Supported regions:
+\begin{itemize}
+    \item \texttt{us} -- United States
+    \item \texttt{ous} -- Outside United States (Europe, Australia, etc.)
+    \item \texttt{jp} -- Japan
+\end{itemize}
+
+\subsection{Authentication Flow}
+
+\begin{enumerate}
+    \item User enters credentials (email/password)
+    \item Firebase Authentication validates credentials
+    \item On success, user profile is loaded from Firestore
+    \item Role-based routing directs to Patient or Doctor interface
+    \item Optional: Dexcom credentials for CGM integration
+\end{enumerate}
+
+%==============================================================================
+\section{User Interface Design}
+%==============================================================================
+
+\subsection{Design Philosophy}
+
+DMS follows Material Design 3 guidelines with a health-focused aesthetic:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Primary Color}: Green (\#4CAF50) -- representing health and vitality
+    \item \textbf{Typography}: Google Fonts for consistent cross-platform rendering
+    \item \textbf{Layout}: Card-based design for clear information hierarchy
+    \item \textbf{Navigation}: Bottom navigation bar for primary sections
+    \item \textbf{Accessibility}: High contrast ratios and scalable text
+\end{itemize}
+
+\subsection{Responsive Design}
+
+The application adapts to various screen sizes:
+
+\begin{itemize}[leftmargin=*]
+    \item Mobile phones (primary target)
+    \item Tablets (optimized layouts)
+    \item Web browsers (responsive grid)
+    \item Desktop applications (Windows, macOS, Linux)
+\end{itemize}
+
+\subsection{Dark Mode Support}
+
+Full dark theme implementation for:
+\begin{itemize}
+    \item Reduced eye strain in low-light conditions
+    \item Battery conservation on OLED displays
+    \item User preference accommodation
+\end{itemize}
+
+%==============================================================================
+\section{Security Considerations}
+%==============================================================================
+
+\subsection{Data Protection}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Authentication}: Firebase Authentication with email/password
+    \item \textbf{Data Encryption}: Encrypted token storage for Dexcom credentials
+    \item \textbf{Secure Transport}: HTTPS for all API communications
+    \item \textbf{Firestore Rules}: Role-based access control for database
+\end{itemize}
+
+\subsection{Production Security Checklist}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lc@{}}
+\toprule
+\textbf{Security Measure} & \textbf{Status} \\
+\midrule
+Environment variables for secrets & Recommended \\
+Firebase security rules enabled & Required \\
+HTTPS enforcement & Required \\
+CORS configuration (no wildcards) & Required \\
+API rate limiting & Implemented (60,000/hour) \\
+Debug mode disabled in production & Required \\
+\bottomrule
+\end{tabular}
+\caption{Security Implementation Checklist}
+\end{table}
+
+%==============================================================================
+\section{Feature Status \& Roadmap}
+%==============================================================================
+
+\subsection{Completed Features (MVP)}
+
+\begin{itemize}[leftmargin=*]
+    \item[\checkmark] Email/Password authentication with Firebase
+    \item[\checkmark] Mock patient account with realistic demo data
+    \item[\checkmark] Patient glucose dashboard with real-time display
+    \item[\checkmark] Interactive glucose charts (3h, 6h, 12h, 24h)
+    \item[\checkmark] Glucose statistics and trend analysis
+    \item[\checkmark] AI-powered glucose analysis
+    \item[\checkmark] Event tracking (meals, insulin, exercise)
+    \item[\checkmark] Notification system with customizable alerts
+    \item[\checkmark] Dexcom CGM integration (backend \& frontend)
+    \item[\checkmark] Dark mode support
+    \item[\checkmark] Responsive Material Design 3 UI
+\end{itemize}
+
+\subsection{Planned Features}
+
+\begin{itemize}[leftmargin=*]
+    \item[\faWrench] Doctor-patient connection system
+    \item[\faWrench] Patient search functionality for doctors
+    \item[\faWrench] Detailed event timeline view
+    \item[\faWrench] Data export (PDF reports)
+    \item[\faWrench] Multi-language support (i18n)
+    \item[\faWrench] Apple Health / Google Fit integration
+    \item[\faWrench] Medication reminders
+    \item[\faWrench] Carbohydrate counting calculator
+\end{itemize}
+
+%==============================================================================
+\section{Getting Started}
+%==============================================================================
+
+\subsection{Prerequisites}
+
+\begin{itemize}[leftmargin=*]
+    \item Flutter SDK 3.9.2 or higher
+    \item Firebase account and project
+    \item (Optional) Docker for backend deployment
+    \item (Optional) Dexcom developer account for CGM integration
+\end{itemize}
+
+\subsection{Quick Start Commands}
+
+\begin{lstlisting}[language=bash,caption=Installation Commands]
+# Clone repository
+git clone https://github.com/ziemniak04/DMS.git
+cd DMS
+
+# Install dependencies
+flutter pub get
+
+# Run on web (development)
+flutter run -d chrome
+
+# Run on mobile
+flutter run -d android  # or ios
+\end{lstlisting}
+
+\subsection{Demo Account}
+
+Test the application immediately with the mock account:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Field} & \textbf{Value} \\
+\midrule
+Email & \texttt{mocked@test.pl} \\
+Password & \texttt{123456} \\
+\bottomrule
+\end{tabular}
+\caption{Demo Account Credentials}
+\end{table}
+
+The demo account includes 7 days of realistic Type 1 Diabetes data with glucose readings, meals, insulin doses, and sleep tracking.
+
+%==============================================================================
+\section{Conclusion}
+%==============================================================================
+
+The Diabetes Management System (DMS) represents a modern approach to diabetes self-management, combining real-time CGM integration, AI-powered insights, and an intuitive user interface. Built on a robust cross-platform architecture using Flutter and backed by Firebase and FastAPI, DMS provides a scalable foundation for comprehensive diabetes care.
+
+Key achievements include:
+
+\begin{itemize}[leftmargin=*]
+    \item Successful integration with Dexcom CGM devices
+    \item AI-powered glucose analysis and recommendations
+    \item Cross-platform support (iOS, Android, Web, Desktop)
+    \item Dual-interface design for patients and healthcare providers
+    \item Modern, accessible Material Design 3 interface
+\end{itemize}
+
+Future development will focus on enhanced doctor-patient connectivity, additional CGM device support, and integration with health platforms like Apple Health and Google Fit.
+
+%==============================================================================
+\section*{Acknowledgments}
+%==============================================================================
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Dexcom} -- For providing the CGM API
+    \item \textbf{Firebase/Google} -- For authentication and database services
+    \item \textbf{Flutter Team} -- For the cross-platform framework
+    \item \textbf{FastAPI} -- For the high-performance Python backend framework
+    \item \textbf{Wrocław University of Science and Technology} -- For academic support
+\end{itemize}
+
+%==============================================================================
+\section*{References}
+%==============================================================================
+
+\begin{itemize}[leftmargin=*]
+    \item Flutter Documentation: \url{https://docs.flutter.dev/}
+    \item Firebase Documentation: \url{https://firebase.google.com/docs}
+    \item Dexcom Developer Portal: \url{https://developer.dexcom.com/}
+    \item FastAPI Documentation: \url{https://fastapi.tiangolo.com/}
+    \item Material Design 3: \url{https://m3.material.io/}
+\end{itemize}
+
+\end{document}
