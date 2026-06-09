@@ -8,6 +8,60 @@ A comprehensive cross-platform diabetes management system featuring real-time gl
 
 ## Features
 
+### Preview of the App
+
+<table width="100%">
+  <tr>
+    <td align="center" width="33.3%">
+      <b>Patient Profile</b><br>
+      <img src="./src/profile-patient.png" width="100%" alt="Patient Profile"><br>
+      <sub>User settings & management</sub>
+    </td>
+    <td align="center" width="33.3%">
+      <b>Main Dashboard</b><br>
+      <img src="./src/main_patient.png" width="100%" alt="Main Dashboard"><br>
+      <sub>Real-time monitoring</sub>
+    </td>
+    <td align="center" width="33.3%">
+      <b>Sensor Status</b><br>
+      <img src="./src/main_patient2.png" width="100%" alt="Sensor Status"><br>
+      <sub>CGM connection feed</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33.3%">
+      <br><b>Glucose Level</b><br>
+      <img src="./src/main_patient3.png" width="100%" alt="Glucose Level"><br>
+      <sub>Current telemetry data</sub>
+    </td>
+    <td align="center" width="33.3%">
+      <br><b>Glucose History</b><br>
+      <img src="./src/history_patient.png" width="100%" alt="Glucose History"><br>
+      <sub>Interactive charts</sub>
+    </td>
+    <td align="center" width="33.3%">
+      <br><b>Smart Alerts</b><br>
+      <img src="./src/alerts_patient.png" width="100%" alt="Smart Alerts"><br>
+      <sub>Threshold notifications</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33.3%">
+      <br><b>Health Connections</b><br>
+      <img src="./src/health_connections_patient.png" width="100%" alt="Health Connections"><br>
+      <sub>External integrations</sub>
+    </td>
+    <td align="center" width="33.3%">
+      <br><b>AI Assistant</b><br>
+      <img src="./src/ai_assistant.png" width="100%" alt="AI Assistant"><br>
+      <sub>AI-powered suggestions</sub>
+    </td>
+    <td align="center" width="33.3%">
+      </td>
+  </tr>
+</table>
+
+
 ### For Patients
 - Real-time glucose monitoring with Dexcom CGM integration
 - Interactive glucose charts with multiple time ranges (3h, 6h, 12h, 24h)

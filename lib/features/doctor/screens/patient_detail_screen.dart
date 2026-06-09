@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:dms_app/providers/glucose_provider.dart';
 import 'package:dms_app/widgets/glucose_chart.dart';
 import 'package:dms_app/core/theme/app_theme.dart';
 import 'package:dms_app/core/constants/app_constants.dart';
+import 'package:dms_app/models/user.dart';
+import 'package:dms_app/models/diabetes_event.dart';
+import 'package:dms_app/services/firestore_service.dart';
 
 /// Patient Detail Screen (for doctors)
 /// View detailed patient data including glucose chart and events
-/// 
-/// TODO: [PLACEHOLDER] Load real patient data from Firebase
-/// TODO: [PLACEHOLDER] Add event history timeline
-/// TODO: [PLACEHOLDER] Add notes functionality
-/// TODO: [PLACEHOLDER] Add recommendations feature
 class PatientDetailScreen extends StatefulWidget {
   final String patientId;
 
@@ -25,7 +24,14 @@ class PatientDetailScreen extends StatefulWidget {
 }
 
 class _PatientDetailScreenState extends State<PatientDetailScreen> {
+  final FirestoreService _firestoreService = FirestoreService();
   int _selectedTimeRange = 24;
+  User? _patient;
+  List<DiabetesEvent> _events = [];
+  bool _isLoadingPatient = true;
+  bool _isLoadingEvents = true;
+  String? _patientError;
+  String? _eventsError;
 
   @override
   void initState() {
@@ -33,16 +39,71 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     _loadPatientData();
   }
 
-  void _loadPatientData() {
-    // TODO: [PLACEHOLDER] Load real patient data
-    context.read<GlucoseProvider>().initializeMockData(widget.patientId);
+  Future<void> _loadPatientData() async {
+    // Load patient info
+    _loadPatientInfo();
+    // Load glucose readings from Firestore
+    _loadGlucoseData();
+    // Load events
+    _loadEvents();
+  }
+
+  Future<void> _loadPatientInfo() async {
+    try {
+      final patient = await _firestoreService.getUserById(widget.patientId);
+      if (mounted) {
+        setState(() {
+          _patient = patient;
+          _isLoadingPatient = false;
+          _patientError = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingPatient = false;
+          _patientError = e.toString();
+        });
+      }
+    }
+  }
+
+  void _loadGlucoseData() {
+    context
+        .read<GlucoseProvider>()
+        .loadGlucoseReadingsFromFirestore(widget.patientId, hours: 168);
+  }
+
+  Future<void> _loadEvents() async {
+    try {
+      final events = await _firestoreService.getDiabetesEvents(
+        widget.patientId,
+        hours: 168,
+      );
+      if (mounted) {
+        setState(() {
+          _events = events;
+          _isLoadingEvents = false;
+          _eventsError = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingEvents = false;
+          _eventsError = e.toString();
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Patient Data'),
+        title: Text(_patient?.name.isNotEmpty == true
+            ? _patient!.name
+            : 'Patient Data'),
         actions: [
           IconButton(
             icon: const Icon(Icons.message_outlined),
@@ -63,8 +124,11 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: _loadPatientData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Patient Info Card
@@ -81,6 +145,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
             
             const SizedBox(height: 100),
           ],
+        ),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -99,6 +164,42 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
   }
 
   Widget _buildPatientInfoCard() {
+    if (_isLoadingPatient) {
+      return Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_patientError != null || _patient == null) {
+      return Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _patientError ?? 'Patient not found',
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final patient = _patient!;
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -122,36 +223,27 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // TODO: [PLACEHOLDER] Use real patient name
-                const Text(
-                  'Anna Nowak',
-                  style: TextStyle(
+                Text(
+                  patient.name.isNotEmpty ? patient.name : patient.email,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  'ID: ${widget.patientId}',
+                  patient.email,
                   style: TextStyle(color: AppTheme.textSecondary),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppTheme.glucoseNormal,
-                        shape: BoxShape.circle,
-                      ),
+                if (patient.diabetesType != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Diabetes: ${patient.diabetesType}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
                     ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      'Sensor active',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -288,31 +380,102 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          // TODO: [PLACEHOLDER] Load real events from Firebase
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.medication, color: AppTheme.primaryColor),
-              title: const Text('Insulin - 10 units'),
-              subtitle: const Text('2 hours ago'),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.restaurant, color: AppTheme.secondaryColor),
-              title: const Text('Meal - 45g carbs'),
-              subtitle: const Text('2 hours ago'),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.directions_run, color: AppTheme.warningColor),
-              title: const Text('Activity - 30 min'),
-              subtitle: const Text('5 hours ago'),
-            ),
-          ),
+          if (_isLoadingEvents)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_eventsError != null)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.error_outline, color: Colors.red),
+                title: Text('Error loading events: $_eventsError'),
+              ),
+            )
+          else if (_events.isEmpty)
+            Card(
+              child: ListTile(
+                leading: Icon(Icons.info_outline, color: AppTheme.textSecondary),
+                title: const Text('No recent events'),
+                subtitle: const Text('No events recorded for this patient'),
+              ),
+            )
+          else
+            ..._events.take(10).map((event) => _buildEventTile(event)),
         ],
       ),
     );
+  }
+
+  Widget _buildEventTile(DiabetesEvent event) {
+    IconData icon;
+    Color color;
+    String title;
+
+    switch (event.type) {
+      case EventType.insulin:
+        icon = Icons.medication;
+        color = AppTheme.primaryColor;
+        final units = event.data['units'] ?? event.data['dose'] ?? '';
+        title = 'Insulin${units != '' ? ' - $units units' : ''}';
+        break;
+      case EventType.meal:
+        icon = Icons.restaurant;
+        color = AppTheme.secondaryColor;
+        final carbs = event.data['carbs'] ?? '';
+        title = 'Meal${carbs != '' ? ' - ${carbs}g carbs' : ''}';
+        break;
+      case EventType.activity:
+        icon = Icons.directions_run;
+        color = AppTheme.warningColor;
+        final duration = event.data['duration'] ?? '';
+        title = 'Activity${duration != '' ? ' - ${duration} min' : ''}';
+        break;
+      case EventType.bloodGlucose:
+        icon = Icons.bloodtype;
+        color = Colors.red;
+        final value = event.data['value'] ?? '';
+        title = 'Blood Glucose${value != '' ? ' - $value mg/dL' : ''}';
+        break;
+      case EventType.fastingGlucose:
+        icon = Icons.wb_sunny;
+        color = Colors.orange;
+        final value = event.data['value'] ?? '';
+        title = 'Fasting Glucose${value != '' ? ' - $value mg/dL' : ''}';
+        break;
+      case EventType.note:
+        icon = Icons.note;
+        color = AppTheme.textSecondary;
+        title = 'Note';
+        break;
+    }
+
+    return Card(
+      child: ListTile(
+        leading: Icon(icon, color: color),
+        title: Text(title),
+        subtitle: Text(_formatTimeAgo(event.timestamp)),
+        trailing: event.notes != null && event.notes!.isNotEmpty
+            ? Tooltip(
+                message: event.notes!,
+                child: const Icon(Icons.comment, size: 16),
+              )
+            : null,
+      ),
+    );
+  }
+
+  String _formatTimeAgo(DateTime time) {
+    final diff = DateTime.now().difference(time);
+    if (diff.inMinutes < 60) {
+      return '${diff.inMinutes} min ago';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours} hours ago';
+    } else if (diff.inDays < 7) {
+      return '${diff.inDays} days ago';
+    } else {
+      return DateFormat('MMM d, HH:mm').format(time);
+    }
   }
 }
 

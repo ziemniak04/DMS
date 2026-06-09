@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:dms_app/providers/auth_provider.dart';
 import 'package:dms_app/core/theme/app_theme.dart';
 import 'package:dms_app/services/firestore_service.dart';
+import 'package:dms_app/models/user.dart';
 
 /// Doctor Dashboard Screen
 /// Main screen for doctors to view and manage their patients
@@ -17,6 +18,66 @@ class DoctorDashboardScreen extends StatefulWidget {
 class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
   int _currentNavIndex = 0;
   final FirestoreService _firestoreService = FirestoreService();
+  
+  List<User> _patients = [];
+  List<User> _filteredPatients = [];
+  bool _isLoadingPatients = true;
+  String? _patientsError;
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPatients();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadPatients() async {
+    final doctorId = context.read<AuthProvider>().currentUser?.id;
+    debugPrint('[DoctorDashboard] _loadPatients called, doctorId: $doctorId');
+    if (doctorId == null) {
+      debugPrint('[DoctorDashboard] doctorId is null, aborting load');
+      return;
+    }
+
+    setState(() {
+      _isLoadingPatients = true;
+      _patientsError = null;
+    });
+
+    try {
+      _patients = await _firestoreService.getPatientsByDoctorId(doctorId);
+      debugPrint('[DoctorDashboard] Loaded ${_patients.length} patients: ${_patients.map((p) => '${p.name}(${p.id})').join(', ')}');
+      _applySearch();
+      _isLoadingPatients = false;
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint('[DoctorDashboard] Error loading patients: $e');
+      _patientsError = e.toString();
+      _isLoadingPatients = false;
+      if (mounted) setState(() {});
+    }
+  }
+
+  void _applySearch() {
+    if (_searchQuery.isEmpty) {
+      _filteredPatients = List.from(_patients);
+    } else {
+      final query = _searchQuery.toLowerCase();
+      _filteredPatients = _patients.where((p) =>
+        p.name.toLowerCase().contains(query) ||
+        p.email.toLowerCase().contains(query)
+      ).toList();
+    }
+  }
 
   Future<void> _showAddPatientDialog() async {
     final emailController = TextEditingController();
@@ -83,8 +144,10 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
   }
 
   Future<void> _addPatientByEmail(String email) async {
+    bool dialogOpen = false;
     try {
       // Show loading indicator
+      dialogOpen = true;
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -94,10 +157,13 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       );
 
       // Find patient by email
+      debugPrint('[DoctorDashboard] Searching for patient by email: $email');
       final patient = await _firestoreService.getUserByEmail(email);
+      debugPrint('[DoctorDashboard] getUserByEmail result: ${patient?.name} (${patient?.id}), role: ${patient?.role}');
 
       if (!mounted) return;
       Navigator.of(context).pop(); // Close loading dialog
+      dialogOpen = false;
 
       if (patient == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -121,6 +187,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
 
       // Check if already assigned
       final doctorId = context.read<AuthProvider>().currentUser?.id;
+      debugPrint('[DoctorDashboard] Current doctor ID: $doctorId, patient doctorId: ${patient.doctorId}');
       if (patient.doctorId == doctorId) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -132,18 +199,26 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       }
 
       // Assign patient to doctor
+      debugPrint('[DoctorDashboard] Assigning patient ${patient.id} to doctor $doctorId');
       await _firestoreService.assignPatientToDoctor(patient.id, doctorId!);
+      debugPrint('[DoctorDashboard] Assignment successful');
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${patient.name} has been added to your patients'),
+          content: Text('${patient.name.isNotEmpty ? patient.name : patient.email} has been added to your patients'),
           backgroundColor: AppTheme.primaryColor,
         ),
       );
+
+      // Refresh the patient list
+      await _loadPatients();
     } catch (e) {
+      debugPrint('[DoctorDashboard] Error adding patient: $e');
       if (!mounted) return;
-      Navigator.of(context).pop(); // Close loading dialog if still open
+      if (dialogOpen) {
+        Navigator.of(context).pop(); // Close loading dialog only if still open
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error adding patient: $e'),
@@ -214,15 +289,48 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               ),
               const Spacer(),
               IconButton(
-                icon: const Icon(Icons.search),
-                onPressed: () {
-                  // TODO: [PLACEHOLDER] Implement patient search
-                },
+                icon: const Icon(Icons.refresh),
+                onPressed: _loadPatients,
               ),
             ],
           ),
         ),
         
+        // Search Bar
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Search patients by name or email...',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {
+                          _searchQuery = '';
+                          _applySearch();
+                        });
+                      },
+                    )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value;
+                _applySearch();
+              });
+            },
+          ),
+        ),
+        const SizedBox(height: 12),
+
         // Stats Cards
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -231,7 +339,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               Expanded(
                 child: _StatCard(
                   title: 'Patients',
-                  value: '12',
+                  value: '${_patients.length}',
                   icon: Icons.people,
                   color: AppTheme.primaryColor,
                 ),
@@ -239,16 +347,16 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               const SizedBox(width: 16),
               Expanded(
                 child: _StatCard(
-                  title: 'Alerts',
-                  value: '3',
-                  icon: Icons.warning_amber,
-                  color: AppTheme.errorColor,
+                  title: 'Shown',
+                  value: '${_filteredPatients.length}',
+                  icon: Icons.filter_list,
+                  color: AppTheme.secondaryColor,
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         
         // Patients List
         Padding(
@@ -263,17 +371,60 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         const SizedBox(height: 8),
         
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: _mockPatients.length,
-            itemBuilder: (context, index) {
-              final patient = _mockPatients[index];
-              return _PatientCard(
-                patient: patient,
-                onTap: () => context.push('/doctor/patient/${patient['id']}'),
-              );
-            },
-          ),
+          child: _isLoadingPatients
+              ? const Center(child: CircularProgressIndicator())
+              : _patientsError != null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.error_outline, size: 48, color: AppTheme.errorColor),
+                          const SizedBox(height: 8),
+                          Text('Error loading patients', style: TextStyle(color: AppTheme.errorColor)),
+                          const SizedBox(height: 4),
+                          Text(_patientsError!, style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                          const SizedBox(height: 16),
+                          ElevatedButton(onPressed: _loadPatients, child: const Text('Retry')),
+                        ],
+                      ),
+                    )
+                  : _filteredPatients.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.people_outline, size: 64, color: AppTheme.textSecondary),
+                              const SizedBox(height: 12),
+                              Text(
+                                _searchQuery.isNotEmpty
+                                    ? 'No patients match your search'
+                                    : 'No patients yet',
+                                style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
+                              ),
+                              if (_searchQuery.isEmpty) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Tap "Add Patient" to connect with a patient',
+                                  style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                                ),
+                              ],
+                            ],
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _loadPatients,
+                          child: ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: _filteredPatients.length,
+                            itemBuilder: (context, index) {
+                              final patient = _filteredPatients[index];
+                              return _PatientCard(
+                                patient: patient,
+                                onTap: () => context.push('/doctor/patient/${patient.id}'),
+                              );
+                            },
+                          ),
+                        ),
         ),
       ],
     );
@@ -475,38 +626,6 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       ],
     );
   }
-
-  // Mock data for patients
-  final List<Map<String, dynamic>> _mockPatients = [
-    {
-      'id': 'patient_1',
-      'name': 'Anna Nowak',
-      'lastReading': 125,
-      'status': 'normal',
-      'lastUpdate': '5 min ago',
-    },
-    {
-      'id': 'patient_2',
-      'name': 'Jan Kowalski',
-      'lastReading': 285,
-      'status': 'high',
-      'lastUpdate': '10 min ago',
-    },
-    {
-      'id': 'patient_3',
-      'name': 'Maria Wiśniewska',
-      'lastReading': 98,
-      'status': 'normal',
-      'lastUpdate': '15 min ago',
-    },
-    {
-      'id': 'patient_4',
-      'name': 'Piotr Zieliński',
-      'lastReading': 58,
-      'status': 'low',
-      'lastUpdate': '20 min ago',
-    },
-  ];
 }
 
 class _StatCard extends StatelessWidget {
@@ -557,7 +676,7 @@ class _StatCard extends StatelessWidget {
 }
 
 class _PatientCard extends StatelessWidget {
-  final Map<String, dynamic> patient;
+  final User patient;
   final VoidCallback onTap;
 
   const _PatientCard({
@@ -565,48 +684,32 @@ class _PatientCard extends StatelessWidget {
     required this.onTap,
   });
 
-  Color _getStatusColor() {
-    switch (patient['status']) {
-      case 'low':
-        return AppTheme.glucoseLow;
-      case 'high':
-        return AppTheme.glucoseHigh;
-      default:
-        return AppTheme.glucoseNormal;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final initial = patient.name.isNotEmpty ? patient.name[0].toUpperCase() : '?';
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: _getStatusColor().withValues(alpha: 0.2),
+          backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
           child: Text(
-            patient['name'].toString().substring(0, 1),
-            style: TextStyle(
-              color: _getStatusColor(),
+            initial,
+            style: const TextStyle(
+              color: AppTheme.primaryColor,
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
         title: Text(
-          patient['name'],
+          patient.name,
           style: const TextStyle(fontWeight: FontWeight.w500),
         ),
         subtitle: Text(
-          '${patient['lastReading']} mg/dL • ${patient['lastUpdate']}',
+          patient.email,
           style: TextStyle(color: AppTheme.textSecondary),
         ),
-        trailing: Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: _getStatusColor(),
-            shape: BoxShape.circle,
-          ),
-        ),
+        trailing: const Icon(Icons.chevron_right),
         onTap: onTap,
       ),
     );

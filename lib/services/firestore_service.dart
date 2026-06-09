@@ -75,15 +75,23 @@ class FirestoreService {
   /// Get patients by doctor ID
   Future<List<User>> getPatientsByDoctorId(String doctorId) async {
     try {
+      debugPrint('[FirestoreService] getPatientsByDoctorId: querying for doctorId=$doctorId');
       final snapshot = await usersCollection
           .where('role', isEqualTo: 'patient')
           .where('doctorId', isEqualTo: doctorId)
           .get();
 
+      debugPrint('[FirestoreService] getPatientsByDoctorId: found ${snapshot.docs.length} documents');
+      for (var i = 0; i < snapshot.docs.length; i++) {
+        final data = snapshot.docs[i].data() as Map<String, dynamic>?;
+        debugPrint('[FirestoreService] patient doc $i: id=${snapshot.docs[i].id}, name=${data?['name']}, email=${data?['email']}, doctorId=${data?['doctorId']}');
+      }
+
       return snapshot.docs
           .map((doc) => User.fromJson(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
+      debugPrint('[FirestoreService] getPatientsByDoctorId ERROR: $e');
       throw 'Error fetching patients: ${e.toString()}';
     }
   }

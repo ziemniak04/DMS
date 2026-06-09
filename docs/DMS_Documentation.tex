@@ -1,545 +1,1129 @@
 \documentclass[12pt,a4paper]{article}
 
-% Packages
+% --- Packages ---
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{lmodern}
-\usepackage[margin=2.5cm]{geometry}
+\usepackage[english]{babel}
+\usepackage{geometry}
 \usepackage{graphicx}
 \usepackage{hyperref}
-\usepackage{xcolor}
 \usepackage{listings}
+\usepackage{xcolor}
 \usepackage{booktabs}
+\usepackage{longtable}
 \usepackage{enumitem}
 \usepackage{fancyhdr}
 \usepackage{titlesec}
-\usepackage{tcolorbox}
-\usepackage{fontawesome5}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{parskip}
+\usepackage{tocloft}
 
-% Colors
-\definecolor{primarygreen}{RGB}{76, 175, 80}
-\definecolor{flutterblue}{RGB}{2, 86, 155}
-\definecolor{fastapigreen}{RGB}{0, 150, 136}
-\definecolor{codebg}{RGB}{245, 245, 245}
-\definecolor{linkblue}{RGB}{0, 102, 204}
+% --- Page Geometry ---
+\geometry{margin=2.5cm}
 
-% Hyperref setup
+% --- Hyperlinks ---
 \hypersetup{
     colorlinks=true,
-    linkcolor=linkblue,
-    urlcolor=linkblue,
-    citecolor=linkblue,
-    pdftitle={DMS - Diabetes Management System Documentation},
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black,
+    pdftitle={DMS -- Diabetes Management System Documentation},
     pdfauthor={DMS Development Team},
 }
 
-% Code listings style
-\lstset{
+% --- Code Listing Style ---
+\definecolor{codebg}{HTML}{F5F5F5}
+\definecolor{codeframe}{HTML}{CCCCCC}
+\definecolor{codegreen}{HTML}{34A853}
+\definecolor{codepurple}{HTML}{9334E6}
+\definecolor{codeblue}{HTML}{1A73E8}
+
+\lstdefinestyle{dartstyle}{
     backgroundcolor=\color{codebg},
-    basicstyle=\ttfamily\small,
-    breaklines=true,
     frame=single,
-    rulecolor=\color{gray!30},
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{codeblue}\bfseries,
+    stringstyle=\color{codegreen},
+    commentstyle=\color{gray}\itshape,
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=2,
     numbers=left,
     numberstyle=\tiny\color{gray},
-    keywordstyle=\color{flutterblue}\bfseries,
-    commentstyle=\color{gray},
-    stringstyle=\color{primarygreen},
+    numbersep=5pt,
 }
 
-% Header/Footer
+\lstdefinestyle{yamlstyle}{
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{codepurple},
+    stringstyle=\color{codegreen},
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=2,
+}
+
+\lstdefinestyle{pythonstyle}{
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{codeblue}\bfseries,
+    stringstyle=\color{codegreen},
+    commentstyle=\color{gray}\itshape,
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=4,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=5pt,
+}
+
+% --- Headers & Footers ---
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\textcolor{primarygreen}{\textbf{DMS}} - Diabetes Management System}
-\fancyhead[R]{\thepage}
-\fancyfoot[C]{\small Wrocław University of Science and Technology}
+\fancyhead[L]{\small DMS -- Diabetes Management System}
+\fancyhead[R]{\small v1.0.0}
+\fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
-\renewcommand{\footrulewidth}{0.4pt}
 
-% Title formatting
-\titleformat{\section}
-    {\Large\bfseries\color{primarygreen}}{\thesection}{1em}{}
-\titleformat{\subsection}
-    {\large\bfseries\color{flutterblue}}{\thesubsection}{1em}{}
-\titleformat{\subsubsection}
-    {\normalsize\bfseries}{\thesubsubsection}{1em}{}
-
-% Custom box for important notes
-\newtcolorbox{importantbox}{
-    colback=primarygreen!10,
-    colframe=primarygreen,
-    title={\faExclamationTriangle\ Important},
-    fonttitle=\bfseries
-}
-
-\newtcolorbox{featurebox}{
-    colback=flutterblue!5,
-    colframe=flutterblue,
-    fonttitle=\bfseries
-}
-
-% Document info
+% --- Title ---
 \title{
     \vspace{-1cm}
-    \textcolor{primarygreen}{\Huge\textbf{DMS}}\\[0.3cm]
-    \Large Diabetes Management System\\[0.5cm]
-    \large Technical Documentation \& Feature Overview
+    {\Huge\bfseries DMS}\\[0.3cm]
+    {\LARGE Diabetes Management System}\\[0.5cm]
+    {\large Technical Documentation}\\[0.3cm]
+    \rule{\textwidth}{0.4pt}
 }
-\author{
-    Cross-Platform Development Project\\
-    Wrocław University of Science and Technology
-}
-\date{\today}
+\author{DMS Development Team}
+\date{February 2026 \\ Version 1.0.0}
 
+% ==============================================================================
 \begin{document}
+% ==============================================================================
 
 \maketitle
 \thispagestyle{empty}
 
-\begin{abstract}
-DMS (Diabetes Management System) is a comprehensive cross-platform mobile application designed for diabetes management. Built with Flutter and backed by Firebase and FastAPI, it provides real-time glucose monitoring through Dexcom CGM integration, AI-powered insights, and a dual-interface system for both patients and healthcare providers. This document provides a detailed overview of the system's architecture, features, and technical implementation.
-\end{abstract}
+\vfill
+\begin{center}
+\textit{A comprehensive mobile application for continuous glucose monitoring,\\
+diabetes event tracking, and patient--doctor collaboration.}
+\end{center}
+\vfill
 
+\clearpage
 \tableofcontents
-\newpage
+\clearpage
 
 %==============================================================================
 \section{Introduction}
 %==============================================================================
 
-Diabetes mellitus affects over 537 million adults worldwide, making effective glucose management crucial for patient health outcomes. The Diabetes Management System (DMS) addresses this need by providing a modern, user-friendly application that integrates with continuous glucose monitoring (CGM) devices.
+\subsection{Project Overview}
 
-\subsection{Project Goals}
+DMS (Diabetes Management System) is a cross-platform mobile application built with Flutter that enables real-time glucose monitoring through continuous glucose monitoring (CGM) sensors, specifically the Dexcom G7 platform. The application supports two distinct user roles---\textbf{Patients} and \textbf{Doctors}---and provides a comprehensive ecosystem for diabetes data management, analysis, and collaboration.
 
-The primary objectives of DMS are:
-
-\begin{itemize}[leftmargin=*]
-    \item \textbf{Real-time Monitoring}: Provide seamless integration with Dexcom CGM sensors for continuous glucose tracking
-    \item \textbf{Data Visualization}: Present glucose data through intuitive, interactive charts
-    \item \textbf{AI-Powered Insights}: Leverage artificial intelligence to provide personalized recommendations
-    \item \textbf{Cross-Platform Availability}: Support multiple platforms (iOS, Android, Web, Desktop)
-    \item \textbf{Healthcare Provider Integration}: Enable doctors to monitor and support their patients remotely
-\end{itemize}
-
-\subsection{Target Users}
-
-DMS serves two primary user groups:
-
+The system consists of three main components:
 \begin{enumerate}
-    \item \textbf{Patients}: Individuals with diabetes who need to monitor their glucose levels and track diabetes-related events
-    \item \textbf{Doctors/Healthcare Providers}: Medical professionals who oversee patient glucose management and provide recommendations
+    \item \textbf{Flutter Mobile Application} -- The primary user-facing application supporting Android, iOS, Windows, Linux, macOS, and web platforms.
+    \item \textbf{FastAPI Backend Server} -- A Python-based REST API providing Dexcom OAuth2 integration, data synchronisation, and AI-powered glucose analysis.
+    \item \textbf{Firebase Cloud Services} -- Authentication, real-time database (Cloud Firestore), and push notification infrastructure.
 \end{enumerate}
 
-%==============================================================================
-\section{Technology Stack}
-%==============================================================================
+\subsection{Purpose and Motivation}
 
-DMS employs a modern, scalable technology stack optimized for cross-platform development and real-time data processing.
-
-\subsection{Frontend Technologies}
-
-\begin{table}[h]
-\centering
-\begin{tabular}{@{}lll@{}}
-\toprule
-\textbf{Technology} & \textbf{Version} & \textbf{Purpose} \\
-\midrule
-Flutter & 3.9.2+ & Cross-platform UI framework \\
-Dart & (bundled) & Programming language \\
-Provider & latest & State management \\
-GoRouter & latest & Navigation/routing \\
-FL Chart & latest & Data visualization \\
-Firebase Auth & 6.1.2 & User authentication \\
-Cloud Firestore & 6.1.0 & NoSQL database \\
-Dexcom Package & 1.0.7 & CGM integration \\
-\bottomrule
-\end{tabular}
-\caption{Frontend Technology Stack}
-\end{table}
-
-\subsection{Backend Technologies}
-
-\begin{table}[h]
-\centering
-\begin{tabular}{@{}lll@{}}
-\toprule
-\textbf{Technology} & \textbf{Version} & \textbf{Purpose} \\
-\midrule
-FastAPI & 0.115.0 & Python web framework \\
-PostgreSQL & latest & Relational database \\
-Docker & latest & Containerization \\
-Firebase Admin SDK & latest & Server-side Firebase access \\
-Cryptography & latest & Token encryption \\
-\bottomrule
-\end{tabular}
-\caption{Backend Technology Stack}
-\end{table}
-
-\subsection{External Services}
-
-\begin{itemize}[leftmargin=*]
-    \item \textbf{Dexcom Share API}: Real-time CGM data retrieval
-    \item \textbf{Firebase}: Authentication, database, and cloud functions
-    \item \textbf{AI/ML Service}: Claude API for glucose analysis and recommendations
+Continuous glucose monitoring generates vast amounts of data that can be overwhelming for patients to interpret on their own. DMS addresses this by:
+\begin{itemize}
+    \item Providing clear, interactive visualisations of glucose trends over configurable time ranges (3, 6, 12, and 24 hours).
+    \item Offering AI-powered analysis of glucose patterns with personalised recommendations.
+    \item Enabling secure data sharing between patients and their healthcare providers.
+    \item Tracking diabetes-related events (insulin doses, meals, physical activity) alongside glucose readings.
+    \item Delivering timely alerts for hypo- and hyperglycaemic events.
 \end{itemize}
 
-%==============================================================================
-\section{Features Overview}
-%==============================================================================
+\subsection{Medical Disclaimer}
 
-\subsection{Patient Features}
-
-The patient interface provides comprehensive tools for diabetes self-management:
-
-\subsubsection{Real-Time Glucose Monitoring}
-
-\begin{featurebox}
-\begin{itemize}[leftmargin=*]
-    \item Live glucose readings from Dexcom CGM sensors
-    \item Trend arrows indicating glucose direction (rising, falling, stable)
-    \item Color-coded values (green: in range, yellow: warning, red: critical)
-    \item Automatic data synchronization every 5 minutes
-\end{itemize}
-\end{featurebox}
-
-\subsubsection{Interactive Glucose Charts}
-
-Users can visualize their glucose data through customizable charts:
-
-\begin{itemize}[leftmargin=*]
-    \item Multiple time ranges: 3 hours, 6 hours, 12 hours, 24 hours
-    \item Target range visualization (customizable thresholds)
-    \item Trend line analysis
-    \item Touch-enabled data point inspection
-\end{itemize}
-
-\subsubsection{Event Tracking}
-
-DMS allows patients to log various diabetes-related events:
-
-\begin{table}[h]
-\centering
-\begin{tabular}{@{}lp{8cm}@{}}
-\toprule
-\textbf{Event Type} & \textbf{Description} \\
-\midrule
-\faUtensils\ Meals & Log carbohydrate intake with meal type classification \\
-\faSyringe\ Insulin & Record insulin doses (bolus, basal, correction) \\
-\faRunning\ Exercise & Track physical activity duration and intensity \\
-\faBed\ Sleep & Monitor sleep patterns and their effect on glucose \\
-\faStickyNote\ Notes & Add custom notes and observations \\
-\bottomrule
-\end{tabular}
-\caption{Trackable Event Types}
-\end{table}
-
-\subsubsection{AI-Powered Analysis}
-
-The integrated AI assistant provides:
-
-\begin{itemize}[leftmargin=*]
-    \item Pattern recognition in glucose data
-    \item Personalized recommendations based on historical trends
-    \item Meal impact analysis
-    \item Insulin timing suggestions
-    \item Risk assessment for hypoglycemia/hyperglycemia
-\end{itemize}
-
-\subsubsection{Smart Notifications}
-
-Customizable alert system for:
-
-\begin{itemize}[leftmargin=*]
-    \item High glucose alerts (hyperglycemia)
-    \item Low glucose alerts (hypoglycemia)
-    \item Urgent low alerts (critical hypoglycemia)
-    \item Rapid rise/fall warnings
-    \item Customizable thresholds and sound preferences
-\end{itemize}
-
-\subsection{Doctor Features}
-
-Healthcare providers have access to specialized tools:
-
-\subsubsection{Patient Dashboard}
-
-\begin{itemize}[leftmargin=*]
-    \item Overview of all connected patients
-    \item Real-time glucose status for each patient
-    \item Alert indicators for patients requiring attention
-    \item Quick access to detailed patient views
-\end{itemize}
-
-\subsubsection{Alert Management}
-
-\begin{itemize}[leftmargin=*]
-    \item Centralized alert monitoring
-    \item Priority-based alert sorting
-    \item Historical alert review
-    \item One-click navigation to patient details
-\end{itemize}
-
-\subsubsection{Patient Detail View}
-
-Comprehensive patient data access including:
-
-\begin{itemize}[leftmargin=*]
-    \item Full glucose history with interactive charts
-    \item Event timeline (meals, insulin, exercise)
-    \item Statistical analysis (Time in Range, average glucose, variability)
-    \item Notes and recommendation functionality (planned)
-\end{itemize}
+\begin{quote}
+\textbf{IMPORTANT:} DMS uses an unofficial Dexcom Share API and should be used for \textit{informational purposes only}. Do \textbf{not} use this application for critical medical treatment decisions. Always consult your healthcare provider before making changes to your diabetes management plan.
+\end{quote}
 
 %==============================================================================
 \section{System Architecture}
 %==============================================================================
 
-\subsection{Application Structure}
+\subsection{High-Level Architecture}
 
-The DMS Flutter application follows a feature-based modular architecture:
+The DMS platform follows a three-tier architecture:
 
-\begin{lstlisting}[language=bash,caption=Project Structure]
-lib/
-├── core/               # Core utilities
-│   ├── config.dart     # App configuration
-│   ├── constants/      # Constants & thresholds
-│   ├── router/         # Navigation (GoRouter)
-│   └── theme/          # Material Design 3 theme
-├── features/           # Feature modules
-│   ├── auth/           # Authentication
-│   ├── patient/        # Patient screens
-│   ├── doctor/         # Doctor screens
-│   └── settings/       # Settings
-├── models/             # Data models
-├── providers/          # State management
-├── services/           # Business logic
-└── widgets/            # Reusable components
-\end{lstlisting}
+\begin{verbatim}
++-------------------+       +-------------------+       +-------------------+
+|   Flutter App     | <---> |   FastAPI Backend  | <---> |   Dexcom Share    |
+|  (Mobile/Desktop) |       |   (Python 3.12+)  |       |   API (HTTPS)     |
++-------------------+       +-------------------+       +-------------------+
+        |                           |
+        v                           v
++-------------------+       +-------------------+
+|  Firebase Auth    |       |   PostgreSQL DB   |
+|  Cloud Firestore  |       |  (Token Storage)  |
++-------------------+       +-------------------+
+\end{verbatim}
 
 \subsection{Data Flow}
 
 \begin{enumerate}
-    \item \textbf{CGM Data Acquisition}: Dexcom sensor $\rightarrow$ Dexcom Share API $\rightarrow$ DMS Backend/App
-    \item \textbf{Data Storage}: App $\rightarrow$ Firebase Firestore $\rightarrow$ Real-time sync
-    \item \textbf{AI Analysis}: Glucose data $\rightarrow$ AI Service $\rightarrow$ Recommendations
-    \item \textbf{Notifications}: Alert triggers $\rightarrow$ Notification Service $\rightarrow$ User device
+    \item \textbf{Authentication:} Users authenticate via Firebase Auth (email/password). Credentials are persisted locally using \texttt{SharedPreferences}.
+    \item \textbf{Glucose Data (Real Sensor):} The Flutter app authenticates directly with the Dexcom Share API using the patient's Dexcom credentials, then polls for glucose readings at regular intervals.
+    \item \textbf{Glucose Data (Mock/Demo):} For demonstration purposes, mock glucose data is generated algorithmically and stored in Cloud Firestore.
+    \item \textbf{Doctor Access:} Doctors query Firestore for their assigned patients' glucose readings and diabetes events. Firestore security rules enforce the doctor--patient relationship.
+    \item \textbf{AI Analysis:} The Flutter app sends glucose data to the FastAPI backend, which forwards it to a large language model (LLM) for analysis and returns personalised recommendations.
 \end{enumerate}
 
-\subsection{Dexcom Integration}
+\subsection{Technology Stack}
 
-DMS integrates with Dexcom CGM devices through the Dexcom Share API:
-
-\begin{importantbox}
-The Dexcom integration uses the unofficial Dexcom Share API. This should be used for \textbf{informational purposes only} and \textbf{NOT for critical medical treatment decisions}.
-\end{importantbox}
-
-Supported regions:
-\begin{itemize}
-    \item \texttt{us} -- United States
-    \item \texttt{ous} -- Outside United States (Europe, Australia, etc.)
-    \item \texttt{jp} -- Japan
-\end{itemize}
-
-\subsection{Authentication Flow}
-
-\begin{enumerate}
-    \item User enters credentials (email/password)
-    \item Firebase Authentication validates credentials
-    \item On success, user profile is loaded from Firestore
-    \item Role-based routing directs to Patient or Doctor interface
-    \item Optional: Dexcom credentials for CGM integration
-\end{enumerate}
-
-%==============================================================================
-\section{User Interface Design}
-%==============================================================================
-
-\subsection{Design Philosophy}
-
-DMS follows Material Design 3 guidelines with a health-focused aesthetic:
-
-\begin{itemize}[leftmargin=*]
-    \item \textbf{Primary Color}: Green (\#4CAF50) -- representing health and vitality
-    \item \textbf{Typography}: Google Fonts for consistent cross-platform rendering
-    \item \textbf{Layout}: Card-based design for clear information hierarchy
-    \item \textbf{Navigation}: Bottom navigation bar for primary sections
-    \item \textbf{Accessibility}: High contrast ratios and scalable text
-\end{itemize}
-
-\subsection{Responsive Design}
-
-The application adapts to various screen sizes:
-
-\begin{itemize}[leftmargin=*]
-    \item Mobile phones (primary target)
-    \item Tablets (optimized layouts)
-    \item Web browsers (responsive grid)
-    \item Desktop applications (Windows, macOS, Linux)
-\end{itemize}
-
-\subsection{Dark Mode Support}
-
-Full dark theme implementation for:
-\begin{itemize}
-    \item Reduced eye strain in low-light conditions
-    \item Battery conservation on OLED displays
-    \item User preference accommodation
-\end{itemize}
-
-%==============================================================================
-\section{Security Considerations}
-%==============================================================================
-
-\subsection{Data Protection}
-
-\begin{itemize}[leftmargin=*]
-    \item \textbf{Authentication}: Firebase Authentication with email/password
-    \item \textbf{Data Encryption}: Encrypted token storage for Dexcom credentials
-    \item \textbf{Secure Transport}: HTTPS for all API communications
-    \item \textbf{Firestore Rules}: Role-based access control for database
-\end{itemize}
-
-\subsection{Production Security Checklist}
-
-\begin{table}[h]
-\centering
-\begin{tabular}{@{}lc@{}}
+\begin{longtable}{p{4cm} p{3.5cm} p{7cm}}
 \toprule
-\textbf{Security Measure} & \textbf{Status} \\
+\textbf{Layer} & \textbf{Technology} & \textbf{Purpose} \\
 \midrule
-Environment variables for secrets & Recommended \\
-Firebase security rules enabled & Required \\
-HTTPS enforcement & Required \\
-CORS configuration (no wildcards) & Required \\
-API rate limiting & Implemented (60,000/hour) \\
-Debug mode disabled in production & Required \\
+\endhead
+Frontend Framework & Flutter 3.9+ & Cross-platform UI (Android, iOS, Windows, Web) \\
+Programming Language & Dart 3.9+ & Frontend application logic \\
+State Management & Provider 6.1 & Reactive state management with \texttt{ChangeNotifier} \\
+Navigation & GoRouter 17.0 & Declarative routing with deep linking support \\
+Charts & fl\_chart 1.1 & Interactive glucose trend line charts \\
+Typography & Google Fonts & Roboto font family (Material Design 3) \\
+Authentication & Firebase Auth 6.1 & Email/password authentication \\
+Database & Cloud Firestore 6.1 & NoSQL document database for user/health data \\
+CGM Integration & Dexcom Share API & Real-time glucose readings from Dexcom G7 sensors \\
+HTTP Client & http 1.2 & Direct REST API calls (Dexcom bypass, AI backend) \\
+Local Storage & SharedPreferences & Persisting credentials, settings, session state \\
+Notifications & flutter\_local\_notifications & Local push notifications for glucose alerts \\
+Markdown & flutter\_markdown & Rendering AI assistant responses \\
+Backend Framework & FastAPI 0.115 & Python REST API server \\
+Backend ORM & SQLAlchemy 2.0 & Database abstraction for PostgreSQL \\
+Backend Auth & Firebase Admin SDK & Server-side token verification \\
+Encryption & cryptography 44.0 & AES encryption for stored OAuth tokens \\
+Scheduling & APScheduler 3.10 & Background job scheduling for data sync \\
 \bottomrule
-\end{tabular}
-\caption{Security Implementation Checklist}
-\end{table}
+\end{longtable}
 
 %==============================================================================
-\section{Feature Status \& Roadmap}
+\section{Project Structure}
 %==============================================================================
 
-\subsection{Completed Features (MVP)}
+\subsection{Flutter Application}
 
-\begin{itemize}[leftmargin=*]
-    \item[\checkmark] Email/Password authentication with Firebase
-    \item[\checkmark] Mock patient account with realistic demo data
-    \item[\checkmark] Patient glucose dashboard with real-time display
-    \item[\checkmark] Interactive glucose charts (3h, 6h, 12h, 24h)
-    \item[\checkmark] Glucose statistics and trend analysis
-    \item[\checkmark] AI-powered glucose analysis
-    \item[\checkmark] Event tracking (meals, insulin, exercise)
-    \item[\checkmark] Notification system with customizable alerts
-    \item[\checkmark] Dexcom CGM integration (backend \& frontend)
-    \item[\checkmark] Dark mode support
-    \item[\checkmark] Responsive Material Design 3 UI
+\begin{lstlisting}[style=yamlstyle, title={lib/ directory structure}]
+lib/
+  main.dart                        # App entry point, Firebase init
+  firebase_options.dart            # Firebase configuration (auto-generated)
+  core/
+    constants/
+      app_constants.dart           # Glucose thresholds, time ranges, keys
+    router/
+      app_router.dart              # GoRouter route definitions
+    theme/
+      app_theme.dart               # Material 3 light/dark themes
+    config.dart                    # AI backend URL configuration
+  features/
+    auth/screens/
+      splash_screen.dart           # Initial loading / auth check
+      login_screen.dart            # Email/password login
+      register_screen.dart         # New account registration
+      role_selection_screen.dart   # Patient or Doctor role picker
+    patient/screens/
+      patient_dashboard_screen.dart # Main patient view (glucose + chart)
+      patient_history_screen.dart   # Historical glucose data
+      patient_connections_screen.dart # Doctor connections
+      patient_profile_screen.dart   # Patient profile settings
+      add_event_screen.dart         # Log insulin, meals, activity
+      ai_assistant_screen.dart      # AI-powered glucose analysis
+    doctor/screens/
+      doctor_dashboard_screen.dart  # Patient list + search + alerts
+      doctor_patients_screen.dart   # Full patient directory
+      patient_detail_screen.dart    # Individual patient data view
+    settings/screens/
+      settings_screen.dart          # App settings (theme, units, etc.)
+      alerts_settings_screen.dart   # Glucose alert thresholds
+      dexcom_connection_screen.dart # Dexcom account linking
+      notification_settings_screen.dart # Push notification config
+  models/
+    user.dart                      # User model (Patient/Doctor)
+    glucose_reading.dart           # Glucose reading from sensor
+    diabetes_event.dart            # Events: insulin, meal, activity, note
+  providers/
+    auth_provider.dart             # Authentication state
+    glucose_provider.dart          # Glucose data management
+    events_provider.dart           # Diabetes events management
+    settings_provider.dart         # App preferences
+    ai_assistant_provider.dart     # AI chat state management
+  services/
+    firebase_auth_service.dart     # Firebase Auth wrapper
+    firestore_service.dart         # Firestore CRUD operations
+    dexcom_service.dart            # Dexcom Share API integration
+    ai_assistant_service.dart      # LLM-backed analysis service
+    notification_service.dart      # Local notification scheduling
+    mock_data_service.dart         # Demo data generation
+    mock_analysis_service.dart     # Fallback AI analysis
+    data_sync_service.dart         # Cloud data synchronisation
+  widgets/
+    glucose_chart.dart             # fl_chart glucose line chart
+\end{lstlisting}
+
+\subsection{Backend Server}
+
+\begin{lstlisting}[style=yamlstyle, title={backend/ directory structure}]
+backend/
+  main.py                          # Uvicorn entry point
+  Dockerfile                       # Docker containerisation
+  docker-compose.yml               # Multi-service orchestration
+  requirements.txt                 # Python dependencies
+  alembic.ini                      # Database migration config
+  alembic/
+    env.py                         # Alembic environment
+    script.py.mako                 # Migration template
+  app/
+    __init__.py
+    main.py                        # FastAPI app creation + lifespan
+    config.py                      # Pydantic settings (env vars)
+    database.py                    # SQLAlchemy engine + session
+    models/
+      database.py                  # ORM models (tokens, sessions)
+      dexcom.py                    # Dexcom API response schemas
+    routers/
+      health.py                    # Health check endpoints
+      dexcom.py                    # Dexcom OAuth + data endpoints
+      sync.py                      # Data synchronisation endpoints
+    services/
+      dexcom_api.py                # Dexcom REST API client
+      dexcom_scraper.py            # Alternative data fetcher
+      firestore_service.py         # Server-side Firestore client
+      job_scheduler.py             # APScheduler background jobs
+      rate_limiter.py              # Dexcom API rate limiting
+      token_storage.py             # Encrypted OAuth token storage
+    utils/                         # Utility functions
+\end{lstlisting}
+
+%==============================================================================
+\section{Data Models}
+%==============================================================================
+
+\subsection{User Model}
+
+The \texttt{User} model represents both patients and doctors, distinguished by the \texttt{role} field.
+
+\begin{longtable}{p{3.5cm} p{3cm} p{8cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{id} & \texttt{String} & Firebase Auth UID (primary key) \\
+\texttt{email} & \texttt{String} & User email address \\
+\texttt{name} & \texttt{String} & Display name \\
+\texttt{role} & \texttt{String} & \texttt{'patient'} or \texttt{'doctor'} \\
+\texttt{profileImageUrl} & \texttt{String?} & Avatar URL (optional) \\
+\texttt{createdAt} & \texttt{DateTime?} & Account creation timestamp \\
+\texttt{specialization} & \texttt{String?} & Doctor-only: medical specialty \\
+\texttt{licenseNumber} & \texttt{String?} & Doctor-only: medical license \\
+\texttt{doctorId} & \texttt{String?} & Patient-only: assigned doctor's UID \\
+\texttt{dateOfBirth} & \texttt{DateTime?} & Patient-only: date of birth \\
+\texttt{diabetesType} & \texttt{String?} & Patient-only: e.g.\ \texttt{'Type 1'}, \texttt{'Type 2'} \\
+\bottomrule
+\end{longtable}
+
+The model provides helper getters: \texttt{isDoctor} and \texttt{isPatient}, as well as \texttt{fromJson}, \texttt{toJson}, and \texttt{copyWith} methods for serialisation and immutable updates.
+
+\subsection{Glucose Reading Model}
+
+Each glucose reading represents a single data point from the CGM sensor or a manual entry.
+
+\begin{longtable}{p{3.5cm} p{3cm} p{8cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{id} & \texttt{String} & Unique reading identifier \\
+\texttt{patientId} & \texttt{String} & Patient's Firebase UID \\
+\texttt{value} & \texttt{double} & Glucose level in mg/dL \\
+\texttt{timestamp} & \texttt{DateTime} & When the reading was taken \\
+\texttt{trend} & \texttt{String?} & Trend direction: \texttt{'rising'}, \texttt{'falling'}, \texttt{'stable'}, \texttt{'rising\_fast'}, \texttt{'falling\_fast'} \\
+\texttt{source} & \texttt{String} & Data source: \texttt{'sensor'}, \texttt{'manual'}, \texttt{'calibration'} \\
+\bottomrule
+\end{longtable}
+
+The \texttt{GlucoseStatus} enum classifies readings based on clinical thresholds:
+\begin{itemize}
+    \item \textbf{Low} ($< 70$ mg/dL) -- Hypoglycaemia risk
+    \item \textbf{Normal} ($70$--$180$ mg/dL) -- Target range
+    \item \textbf{High} ($180$--$250$ mg/dL) -- Hyperglycaemia
+    \item \textbf{Very High} ($> 250$ mg/dL) -- Severe hyperglycaemia
 \end{itemize}
 
-\subsection{Planned Features}
+\subsection{Diabetes Event Model}
 
-\begin{itemize}[leftmargin=*]
-    \item[\faWrench] Doctor-patient connection system
-    \item[\faWrench] Patient search functionality for doctors
-    \item[\faWrench] Detailed event timeline view
-    \item[\faWrench] Data export (PDF reports)
-    \item[\faWrench] Multi-language support (i18n)
-    \item[\faWrench] Apple Health / Google Fit integration
-    \item[\faWrench] Medication reminders
-    \item[\faWrench] Carbohydrate counting calculator
+Events track patient actions and observations alongside glucose data.
+
+\begin{longtable}{p{3.5cm} p{3cm} p{8cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{id} & \texttt{String} & Unique event identifier \\
+\texttt{patientId} & \texttt{String} & Patient's Firebase UID \\
+\texttt{type} & \texttt{EventType} & Category of event (see below) \\
+\texttt{timestamp} & \texttt{DateTime} & When the event occurred \\
+\texttt{data} & \texttt{Map<String, dynamic>} & Type-specific payload (units, carbs, duration, etc.) \\
+\texttt{notes} & \texttt{String?} & Free-text note (optional) \\
+\bottomrule
+\end{longtable}
+
+Supported \texttt{EventType} values:
+\begin{itemize}
+    \item \texttt{bloodGlucose} -- Manual finger-prick measurement
+    \item \texttt{insulin} -- Insulin dose (units in \texttt{data['units']})
+    \item \texttt{meal} -- Carbohydrate intake (grams in \texttt{data['carbs']})
+    \item \texttt{activity} -- Physical activity (minutes in \texttt{data['duration']})
+    \item \texttt{fastingGlucose} -- Morning fasting measurement
+    \item \texttt{note} -- General observation or annotation
 \end{itemize}
 
 %==============================================================================
-\section{Getting Started}
+\section{State Management}
+%==============================================================================
+
+The application uses the \textbf{Provider} package with \texttt{ChangeNotifier} classes for reactive state management. All providers are registered at the root of the widget tree via \texttt{MultiProvider} in \texttt{main.dart}.
+
+\subsection{AuthProvider}
+
+Manages the full authentication lifecycle:
+\begin{itemize}
+    \item Listens to Firebase Auth state changes via \texttt{authStateChanges} stream.
+    \item On login, fetches the \texttt{User} document from Firestore and caches it.
+    \item For the mock account (\texttt{mocked@test.pl}), generates demo data automatically using \texttt{MockDataService}.
+    \item Persists session state (\texttt{isLoggedIn}, \texttt{userRole}, \texttt{userId}, \texttt{userName}) to \texttt{SharedPreferences}.
+    \item Provides \texttt{login()}, \texttt{register()}, \texttt{logout()}, \texttt{sendPasswordResetEmail()}, and \texttt{checkAuthState()} methods.
+\end{itemize}
+
+\subsection{GlucoseProvider}
+
+Manages glucose reading data from multiple sources:
+\begin{itemize}
+    \item \texttt{initializeDexcom(patientId)} -- Authenticates with Dexcom and loads real sensor data.
+    \item \texttt{loadGlucoseReadings(patientId, hours)} -- Fetches readings via the Dexcom service.
+    \item \texttt{loadGlucoseReadingsFromFirestore(patientId, hours)} -- Loads data from Cloud Firestore (for mock accounts and doctor views).
+    \item \texttt{initializeMockData(patientId)} -- Generates deterministic mock data using a seeded random number generator.
+    \item \texttt{getReadingsForTimeRange(hours)} -- Filters cached readings by time window.
+    \item \texttt{getStatistics(hours)} -- Computes average, min, max, in-range percentage for a time period.
+\end{itemize}
+
+\subsection{EventsProvider}
+
+Handles diabetes event CRUD operations:
+\begin{itemize}
+    \item \texttt{addEvent(event)} -- Creates a new event and persists to Firestore.
+    \item \texttt{loadEvents(patientId)} -- Fetches events from the database.
+    \item Maintains a local cache for offline resilience.
+\end{itemize}
+
+\subsection{SettingsProvider}
+
+Manages user preferences stored in \texttt{SharedPreferences}:
+\begin{itemize}
+    \item Dark mode toggle
+    \item Notification preferences
+    \item Glucose unit selection (mg/dL vs.\ mmol/L)
+\end{itemize}
+
+\subsection{AiAssistantProvider}
+
+Manages the AI chat interface state:
+\begin{itemize}
+    \item Maintains conversation history (list of messages).
+    \item Sends glucose data to the AI backend for analysis.
+    \item Handles loading states and error recovery.
+\end{itemize}
+
+%==============================================================================
+\section{Services Layer}
+%==============================================================================
+
+\subsection{Firebase Authentication Service}
+
+\texttt{FirebaseAuthService} wraps the Firebase Auth SDK with user-friendly error handling.
+
+\begin{itemize}
+    \item \texttt{signInWithEmailAndPassword()} -- Returns a \texttt{User} model on success.
+    \item \texttt{registerWithEmailAndPassword()} -- Creates both a Firebase Auth account and a Firestore user document.
+    \item \texttt{signOut()}, \texttt{sendPasswordResetEmail()}, \texttt{sendEmailVerification()}, \texttt{deleteAccount()}.
+    \item Maps Firebase error codes to human-readable messages (e.g.\ \texttt{'network-request-failed'} $\rightarrow$ \texttt{'Network connection error.'}).
+\end{itemize}
+
+\subsection{Firestore Service}
+
+\texttt{FirestoreService} provides all Cloud Firestore CRUD operations:
+
+\begin{longtable}{p{5.5cm} p{9cm}}
+\toprule
+\textbf{Method} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{createUser(user)} & Create new user document \\
+\texttt{getUserById(userId)} & Fetch user by Firebase UID \\
+\texttt{getUserByEmail(email)} & Look up user by email address \\
+\texttt{updateUser(user)} & Update existing user document \\
+\texttt{getPatientsByDoctorId(id)} & Query all patients assigned to a doctor \\
+\texttt{assignPatientToDoctor(pid, did)} & Set the \texttt{doctorId} field on a patient \\
+\texttt{getGlucoseReadings(pid, hours)} & Fetch glucose readings for a patient \\
+\texttt{getDiabetesEvents(pid, hours)} & Fetch diabetes events for a patient \\
+\texttt{getGlucoseReadingsStream(pid)} & Real-time stream of glucose data \\
+\texttt{getDiabetesEventsStream(pid)} & Real-time stream of events \\
+\texttt{getPatientsStream(doctorId)} & Real-time stream of a doctor's patients \\
+\bottomrule
+\end{longtable}
+
+\subsection{Dexcom CGM Service}
+
+\texttt{DexcomService} provides integration with Dexcom continuous glucose monitors via the \textbf{Dexcom Share API}. Due to a timestamp-parsing bug in the \texttt{dexcom} Dart package (v1.0.7) that causes \texttt{FormatException} on European timezone offsets (\texttt{+0100}), the service \textbf{bypasses the package} for data fetching and makes direct HTTP calls.
+
+\subsubsection{Authentication Flow}
+\begin{enumerate}
+    \item \texttt{authenticate(username, password, region)} is called with the user's Dexcom Share credentials.
+    \item \texttt{\_createSession()} sends two sequential HTTP POST requests:
+    \begin{itemize}
+        \item \texttt{/General/AuthenticatePublisherAccount} -- Returns an \texttt{accountId}.
+        \item \texttt{/General/LoginPublisherAccountById} -- Returns a \texttt{sessionId}.
+    \end{itemize}
+    \item The \texttt{sessionId} is cached and used for all subsequent data requests.
+    \item If a request returns HTTP~500, the session is automatically refreshed.
+\end{enumerate}
+
+\subsubsection{Supported Regions}
+\begin{longtable}{p{2cm} p{6cm} p{5cm}}
+\toprule
+\textbf{Region} & \textbf{Base URL} & \textbf{Application ID} \\
+\midrule
+\texttt{us} & \texttt{https://share2.dexcom.com/\ldots} & \texttt{d89443d2-327c-\ldots} \\
+\texttt{ous} & \texttt{https://shareous1.dexcom.com/\ldots} & \texttt{d89443d2-327c-\ldots} \\
+\texttt{jp} & \texttt{https://share.dexcom.jp/\ldots} & \texttt{d89443d2-327c-\ldots} \\
+\bottomrule
+\end{longtable}
+
+\subsubsection{Timestamp Parsing}
+
+The Dexcom Share API returns timestamps in multiple formats:
+\begin{itemize}
+    \item Raw integer milliseconds: \texttt{1770654779246}
+    \item Milliseconds with timezone offset: \texttt{1770654779246+0100}
+    \item .NET \texttt{/Date()} wrapper: \texttt{/Date(1770654779246+0100)/}
+\end{itemize}
+
+The custom \texttt{\_parseDexcomTimestamp()} method handles all three formats by stripping the timezone offset with the regex \texttt{\^{}(\textbackslash d+)[+-]\textbackslash d\{4\}\$} and parsing the remaining milliseconds.
+
+\subsubsection{Key Methods}
+\begin{itemize}
+    \item \texttt{getReadings(patientId, minutes, maxCount)} -- Fetch glucose readings for a time range.
+    \item \texttt{getCurrentReading(patientId)} -- Get the most recent glucose value.
+    \item \texttt{getFullHistory(patientId)} -- Retrieve up to 7 days of data.
+    \item \texttt{streamReadings(patientId, interval)} -- Polling-based stream that yields new readings at a configurable interval (default: 5~minutes).
+\end{itemize}
+
+\subsection{AI Assistant Service}
+
+\texttt{AiAssistantService} connects to a custom FastAPI backend that proxies requests to a large language model for glucose analysis.
+
+\begin{itemize}
+    \item \texttt{checkHealth()} -- Verifies the backend is online.
+    \item \texttt{analyzeGlucose(currentReading, recentReadings, userContext)} -- Sends glucose data and receives personalised advice.
+    \item Builds structured prompts including current value, trend, recent history, and optional patient context.
+    \item All responses include a medical disclaimer.
+    \item Falls back to \texttt{MockAnalysisService} when the backend is unavailable.
+\end{itemize}
+
+\subsection{Notification Service}
+
+\texttt{NotificationService} uses \texttt{flutter\_local\_notifications} to deliver alerts:
+\begin{itemize}
+    \item Glucose high/low threshold alerts.
+    \item Sensor disconnection warnings.
+    \item Configurable through the notification settings screen.
+\end{itemize}
+
+\subsection{Mock Data Service}
+
+\texttt{MockDataService} generates realistic demo data for the mock account (\texttt{mocked@test.pl}):
+\begin{itemize}
+    \item Generates 7~days of glucose readings at 5-minute intervals.
+    \item Simulates meal spikes at 08:00, 13:00, and 19:00.
+    \item Values are clamped between 60 and 300~mg/dL with a fixed random seed (\texttt{Random(42)}) for consistency.
+    \item Stores generated data in Cloud Firestore.
+\end{itemize}
+
+%==============================================================================
+\section{Navigation and Routing}
+%==============================================================================
+
+The application uses \textbf{GoRouter} for declarative, URL-based navigation. All routes are defined in \texttt{AppRouter}:
+
+\begin{longtable}{p{5cm} p{4.5cm} p{5cm}}
+\toprule
+\textbf{Path} & \textbf{Screen} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{/} & SplashScreen & Initial auth check \\
+\texttt{/login} & LoginScreen & Email/password login \\
+\texttt{/register} & RegisterScreen & Account creation \\
+\texttt{/role-selection} & RoleSelectionScreen & Patient/Doctor choice \\
+\midrule
+\texttt{/patient} & PatientDashboardScreen & Main patient view \\
+\texttt{/patient/history} & PatientHistoryScreen & Historical data \\
+\texttt{/patient/connections} & PatientConnectionsScreen & Doctor connections \\
+\texttt{/patient/profile} & PatientProfileScreen & Profile settings \\
+\texttt{/patient/add-event} & AddEventScreen & Log events \\
+\texttt{/patient/ai-assistant} & AiAssistantScreen & AI analysis chat \\
+\midrule
+\texttt{/doctor} & DoctorDashboardScreen & Patient list + alerts \\
+\texttt{/doctor/patients} & DoctorPatientsScreen & Full patient directory \\
+\texttt{/doctor/patient/:id} & PatientDetailScreen & Patient detail view \\
+\midrule
+\texttt{/settings} & SettingsScreen & App settings \\
+\texttt{/settings/alerts} & AlertsSettingsScreen & Alert thresholds \\
+\texttt{/settings/dexcom} & DexcomConnectionScreen & Sensor linking \\
+\texttt{/settings/notifications} & NotificationSettingsScreen & Push notifications \\
+\bottomrule
+\end{longtable}
+
+%==============================================================================
+\section{Theming and UI Design}
+%==============================================================================
+
+\subsection{Design Language}
+
+The application follows \textbf{Material Design 3} principles, inspired by the Dexcom G7 app design:
+\begin{itemize}
+    \item Green accent colour (\texttt{\#34A853}) for health/wellness context.
+    \item Blue primary colour (\texttt{\#1A73E8}) matching Google's Material palette.
+    \item Card-based layouts with 20px border radius.
+    \item Bottom navigation bar for primary screen switching.
+    \item Roboto font family via Google Fonts.
+\end{itemize}
+
+\subsection{Colour Scheme}
+
+\begin{longtable}{p{4.5cm} p{3cm} p{6.5cm}}
+\toprule
+\textbf{Colour} & \textbf{Hex Code} & \textbf{Usage} \\
+\midrule
+\endhead
+Primary Blue & \texttt{\#1A73E8} & Buttons, links, primary actions \\
+Secondary Green & \texttt{\#34A853} & Success states, sensor connected \\
+Error Red & \texttt{\#EA4335} & Errors, low glucose alerts \\
+Warning Yellow & \texttt{\#FBBC04} & Warnings, activity events \\
+Glucose Normal & \texttt{\#66BB6A} & In-range glucose (70--180 mg/dL) \\
+Glucose High & \texttt{\#FFA726} & High glucose (180--250 mg/dL) \\
+Glucose Very High & \texttt{\#E53935} & Very high glucose ($>$ 250 mg/dL) \\
+Glucose Low & \texttt{\#EF5350} & Low glucose ($<$ 70 mg/dL) \\
+\bottomrule
+\end{longtable}
+
+\subsection{Dark Mode}
+
+A full dark theme is implemented with dedicated background, surface, card, and text colours:
+\begin{itemize}
+    \item Background: \texttt{\#0F0F0F}
+    \item Surface: \texttt{\#1C1C1C}
+    \item Cards: \texttt{\#2A2A2A}
+    \item Primary text: \texttt{\#FFFFFF}
+    \item Secondary text: \texttt{\#E8EAED}
+\end{itemize}
+
+%==============================================================================
+\section{Glucose Chart Implementation}
+%==============================================================================
+
+The \texttt{GlucoseChart} widget uses the \texttt{fl\_chart} library to render an interactive line chart:
+
+\begin{itemize}
+    \item \textbf{Y-axis:} Glucose values from 40 to 400~mg/dL with grid lines every 50~mg/dL.
+    \item \textbf{X-axis:} Time-based, with labels formatted as \texttt{HH:mm} (hours and minutes).
+    \item \textbf{Threshold Lines:} Horizontal dashed lines at 70~mg/dL (low threshold) and 180~mg/dL (high threshold), with a green-shaded target zone between them.
+    \item \textbf{Data Points:} Connected by a smooth bezier curve; colour-coded based on glucose status (green for normal, orange for high, red for low/very high).
+    \item \textbf{Time Range Selector:} Pill-shaped buttons for 3h, 6h, 12h, and 24h views.
+    \item \textbf{Touch Interaction:} Tooltip shows exact value and timestamp on tap.
+\end{itemize}
+
+%==============================================================================
+\section{Firestore Security Rules}
+%==============================================================================
+
+Cloud Firestore security rules enforce role-based access control:
+
+\subsection{Helper Functions}
+\begin{itemize}
+    \item \texttt{isAuthenticated()} -- Checks \texttt{request.auth != null}.
+    \item \texttt{isOwner(userId)} -- Verifies the requesting user owns the document.
+    \item \texttt{isDoctor()} -- Reads the user's Firestore document to check \texttt{role == 'doctor'}.
+    \item \texttt{isDoctorOfPatient(patientId)} -- Verifies the doctor is assigned to the patient via the \texttt{doctorId} field.
+\end{itemize}
+
+\subsection{Collection Rules}
+
+\begin{longtable}{p{3.5cm} p{2cm} p{8.5cm}}
+\toprule
+\textbf{Collection} & \textbf{Operation} & \textbf{Rule} \\
+\midrule
+\endhead
+\texttt{users} & Read & Owner OR any authenticated doctor \\
+\texttt{users} & Create & Owner only (email must match auth token) \\
+\texttt{users} & Update & Owner OR doctor (only \texttt{doctorId} field) \\
+\texttt{users} & Delete & Owner only \\
+\midrule
+\texttt{glucoseReadings} & Read & Patient (own data) OR assigned doctor \\
+\texttt{glucoseReadings} & Write & Patient only (own data) \\
+\midrule
+\texttt{diabetesEvents} & Read & Patient (own data) OR assigned doctor \\
+\texttt{diabetesEvents} & Write & Patient only (own data) \\
+\bottomrule
+\end{longtable}
+
+%==============================================================================
+\section{Backend API (FastAPI)}
+%==============================================================================
+
+\subsection{Overview}
+
+The FastAPI backend serves as a proxy and orchestration layer for:
+\begin{itemize}
+    \item Dexcom OAuth2 authentication flow.
+    \item Background glucose data synchronisation.
+    \item AI-powered glucose analysis via LLM integration.
+    \item Rate limiting (60,000 requests/hour to Dexcom API).
+\end{itemize}
+
+\subsection{Configuration}
+
+The backend uses \texttt{pydantic-settings} to load configuration from environment variables (or a \texttt{.env} file):
+
+\begin{longtable}{p{5cm} p{3cm} p{6cm}}
+\toprule
+\textbf{Variable} & \textbf{Default} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{APP\_NAME} & DMS Backend API & Application name \\
+\texttt{DEBUG} & False & Enable debug mode \\
+\texttt{DEXCOM\_CLIENT\_ID} & (required) & Dexcom OAuth client ID \\
+\texttt{DEXCOM\_CLIENT\_SECRET} & (required) & Dexcom OAuth client secret \\
+\texttt{DEXCOM\_ENVIRONMENT} & sandbox & \texttt{sandbox}, \texttt{us}, \texttt{eu}, \texttt{jp} \\
+\texttt{FIREBASE\_PROJECT\_ID} & (required) & Firebase project ID \\
+\texttt{DATABASE\_URL} & (optional) & PostgreSQL connection string \\
+\texttt{ENCRYPTION\_KEY} & (required) & AES key for token encryption \\
+\bottomrule
+\end{longtable}
+
+\subsection{API Endpoints}
+
+\begin{longtable}{p{2cm} p{5.5cm} p{6.5cm}}
+\toprule
+\textbf{Method} & \textbf{Path} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{GET} & \texttt{/health} & Service health check \\
+\texttt{POST} & \texttt{/dexcom/auth} & Initiate Dexcom OAuth2 flow \\
+\texttt{GET} & \texttt{/dexcom/callback} & OAuth2 callback handler \\
+\texttt{GET} & \texttt{/dexcom/readings} & Fetch glucose readings \\
+\texttt{POST} & \texttt{/sync/trigger} & Trigger manual data sync \\
+\texttt{GET} & \texttt{/sync/status} & Check sync job status \\
+\bottomrule
+\end{longtable}
+
+\subsection{Error Handling}
+
+Custom exception handlers are registered for:
+\begin{itemize}
+    \item \texttt{DexcomAPIError} -- Returns structured error response with Dexcom-specific details.
+    \item \texttt{RateLimitError} -- Returns HTTP~429 with rate limit message.
+\end{itemize}
+
+\subsection{Background Jobs}
+
+The \texttt{APScheduler} runs background tasks for:
+\begin{itemize}
+    \item Periodic glucose data synchronisation from Dexcom to Firestore.
+    \item Token refresh for expiring OAuth2 tokens.
+\end{itemize}
+
+%==============================================================================
+\section{Feature Details}
+%==============================================================================
+
+\subsection{Patient Features}
+
+\subsubsection{Dashboard}
+The main patient screen displays:
+\begin{itemize}
+    \item Current glucose value with trend arrow and colour-coded status.
+    \item Interactive glucose chart with 3h/6h/12h/24h time range selectors.
+    \item Quick statistics: average glucose, time in range, min/max values.
+    \item Sensor connection status indicator.
+    \item Quick action buttons for adding events and accessing the AI assistant.
+\end{itemize}
+
+\subsubsection{Event Logging}
+Patients can log the following event types:
+\begin{itemize}
+    \item \textbf{Insulin} -- Dose in units with type (rapid-acting, long-acting).
+    \item \textbf{Meal} -- Carbohydrate count in grams.
+    \item \textbf{Activity} -- Duration in minutes with intensity level.
+    \item \textbf{Blood Glucose} -- Manual finger-prick reading.
+    \item \textbf{Note} -- Free-text observation.
+\end{itemize}
+
+\subsubsection{AI Assistant}
+An AI-powered chat interface that:
+\begin{itemize}
+    \item Analyses current and recent glucose patterns.
+    \item Provides personalised recommendations and warnings.
+    \item Renders responses in Markdown format.
+    \item Always includes a medical disclaimer.
+    \item Falls back to rule-based analysis when the backend is unavailable.
+\end{itemize}
+
+\subsubsection{History}
+Historical data view with:
+\begin{itemize}
+    \item Daily, weekly, and monthly aggregations.
+    \item Glucose charts for each time period.
+    \item Event timeline overlaid on glucose data.
+\end{itemize}
+
+\subsubsection{Health Connections}
+Manage doctor--patient relationships:
+\begin{itemize}
+    \item View assigned doctor's information.
+    \item Send connection requests.
+    \item Manage data sharing permissions.
+\end{itemize}
+
+\subsection{Doctor Features}
+
+\subsubsection{Patient Dashboard}
+The doctor's main screen provides:
+\begin{itemize}
+    \item Searchable patient list fetched from Firestore.
+    \item Patient count statistics and filter indicators.
+    \item ``Add Patient'' button to connect with patients by email.
+    \item Pull-to-refresh for real-time updates.
+    \item Alerts tab showing critical patient notifications.
+    \item Profile tab with doctor information and settings.
+\end{itemize}
+
+\subsubsection{Patient Detail View}
+When a doctor selects a patient:
+\begin{itemize}
+    \item Patient information card (name, email, diabetes type).
+    \item Glucose chart with the same time range selectors as the patient view.
+    \item Statistics cards (average, in-range percentage, min/max).
+    \item Recent events list with icons and relative timestamps.
+    \item Data loaded from Firestore (glucose readings + diabetes events).
+    \item Pull-to-refresh for updated data.
+\end{itemize}
+
+\subsubsection{Add Patient Flow}
+\begin{enumerate}
+    \item Doctor enters patient's email address in a dialog.
+    \item System searches Firestore for a user with that email.
+    \item Validates the user exists and has the \texttt{'patient'} role.
+    \item Checks for duplicate assignments.
+    \item Sets the patient's \texttt{doctorId} field via \texttt{assignPatientToDoctor()}.
+    \item Refreshes the patient list automatically.
+\end{enumerate}
+
+%==============================================================================
+\section{Application Constants}
+%==============================================================================
+
+\begin{longtable}{p{5.5cm} p{3cm} p{5.5cm}}
+\toprule
+\textbf{Constant} & \textbf{Value} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{glucoseLowThreshold} & 70.0 & Hypoglycaemia boundary (mg/dL) \\
+\texttt{glucoseHighThreshold} & 180.0 & Hyperglycaemia boundary (mg/dL) \\
+\texttt{glucoseVeryHighThreshold} & 250.0 & Severe hyperglycaemia (mg/dL) \\
+\texttt{glucoseTargetMin} & 70.0 & Target range lower bound \\
+\texttt{glucoseTargetMax} & 180.0 & Target range upper bound \\
+\texttt{chartTimeRanges} & [3, 6, 12, 24] & Available chart durations (hours) \\
+\texttt{rolePatient} & \texttt{'patient'} & Patient role identifier \\
+\texttt{roleDoctor} & \texttt{'doctor'} & Doctor role identifier \\
+\bottomrule
+\end{longtable}
+
+%==============================================================================
+\section{Dependencies}
+%==============================================================================
+
+\subsection{Flutter Dependencies}
+
+\begin{longtable}{p{5.5cm} p{2cm} p{6.5cm}}
+\toprule
+\textbf{Package} & \textbf{Version} & \textbf{Purpose} \\
+\midrule
+\endhead
+\texttt{go\_router} & 17.0.0 & Declarative URL-based navigation \\
+\texttt{provider} & 6.1.2 & Reactive state management \\
+\texttt{fl\_chart} & 1.1.1 & Interactive line charts for glucose data \\
+\texttt{google\_fonts} & 6.2.1 & Roboto font family (Material Design 3) \\
+\texttt{intl} & 0.20.2 & Date/time formatting and internationalisation \\
+\texttt{shared\_preferences} & 2.2.3 & Key-value local storage \\
+\texttt{firebase\_core} & 4.2.1 & Firebase SDK initialisation \\
+\texttt{firebase\_auth} & 6.1.2 & Email/password authentication \\
+\texttt{cloud\_firestore} & 6.1.0 & Cloud Firestore database access \\
+\texttt{dexcom} & 1.0.7 & Dexcom API wrapper (session init only) \\
+\texttt{http} & 1.2.0 & HTTP client for REST API calls \\
+\texttt{flutter\_local\_notifications} & 18.0.1 & Local push notification delivery \\
+\texttt{timezone} & 0.10.0 & Timezone-aware scheduling \\
+\texttt{flutter\_markdown} & 0.7.6 & Markdown rendering for AI responses \\
+\bottomrule
+\end{longtable}
+
+\subsection{Backend Dependencies}
+
+\begin{longtable}{p{4.5cm} p{2cm} p{7.5cm}}
+\toprule
+\textbf{Package} & \textbf{Version} & \textbf{Purpose} \\
+\midrule
+\endhead
+\texttt{fastapi} & 0.115.0 & Async Python web framework \\
+\texttt{uvicorn} & 0.32.0 & ASGI server with HTTP/2 support \\
+\texttt{pydantic} & 2.9.2 & Data validation and serialisation \\
+\texttt{pydantic-settings} & 2.6.0 & Environment-based configuration \\
+\texttt{httpx} & 0.27.2 & Async HTTP client with HTTP/2 \\
+\texttt{firebase-admin} & 6.5.0 & Server-side Firebase SDK \\
+\texttt{sqlalchemy} & 2.0.35 & ORM for PostgreSQL \\
+\texttt{psycopg2-binary} & 2.9.9 & PostgreSQL driver \\
+\texttt{alembic} & 1.13.1 & Database schema migrations \\
+\texttt{cryptography} & 44.0.0 & AES encryption for OAuth tokens \\
+\texttt{apscheduler} & 3.10.4 & Background job scheduling \\
+\bottomrule
+\end{longtable}
+
+%==============================================================================
+\section{Build and Run Instructions}
 %==============================================================================
 
 \subsection{Prerequisites}
 
-\begin{itemize}[leftmargin=*]
-    \item Flutter SDK 3.9.2 or higher
-    \item Firebase account and project
-    \item (Optional) Docker for backend deployment
-    \item (Optional) Dexcom developer account for CGM integration
+\begin{itemize}
+    \item Flutter SDK 3.9+ with Dart 3.9+
+    \item Android SDK (API 36 recommended) or Xcode for iOS
+    \item Firebase project configured with Auth and Firestore
+    \item Python 3.12+ for the backend
+    \item PostgreSQL (optional, for token storage)
+    \item Docker (optional, for containerised backend)
 \end{itemize}
 
-\subsection{Quick Start Commands}
+\subsection{Flutter Application}
 
-\begin{lstlisting}[language=bash,caption=Installation Commands]
-# Clone repository
-git clone https://github.com/ziemniak04/DMS.git
-cd DMS
-
+\begin{lstlisting}[style=yamlstyle]
 # Install dependencies
+cd DMS
 flutter pub get
 
-# Run on web (development)
-flutter run -d chrome
+# Run on connected device / emulator
+flutter run
 
-# Run on mobile
-flutter run -d android  # or ios
+# Build release APK
+flutter build apk --release
+
+# Build for Windows
+flutter build windows --release
 \end{lstlisting}
 
-\subsection{Demo Account}
+\subsection{Backend Server}
 
-Test the application immediately with the mock account:
+\begin{lstlisting}[style=yamlstyle]
+# Set up virtual environment
+cd backend
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+.\venv\Scripts\activate   # Windows
 
-\begin{table}[h]
-\centering
-\begin{tabular}{@{}ll@{}}
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your credentials
+
+# Run database migrations
+alembic upgrade head
+
+# Start the server
+uvicorn app.main:app --reload --port 8000
+\end{lstlisting}
+
+\subsection{Firebase Setup}
+
+\begin{enumerate}
+    \item Create a Firebase project at \url{https://console.firebase.google.com}.
+    \item Enable Authentication with Email/Password sign-in method.
+    \item Create a Cloud Firestore database.
+    \item Run \texttt{flutterfire configure} to generate \texttt{firebase\_options.dart}.
+    \item Deploy security rules: \texttt{firebase deploy --only firestore:rules --project <project-id>}.
+\end{enumerate}
+
+\subsection{Demo Credentials}
+
+\begin{longtable}{p{4cm} p{5cm} p{5cm}}
 \toprule
-\textbf{Field} & \textbf{Value} \\
+\textbf{Role} & \textbf{Email} & \textbf{Notes} \\
 \midrule
-Email & \texttt{mocked@test.pl} \\
-Password & \texttt{123456} \\
+Mock Patient & \texttt{mocked@test.pl} & Auto-generates 7 days of demo data \\
+Real Patient & Any email & Requires Dexcom sensor for real data \\
+Doctor & Email with ``doctor'' & Sees assigned patients' data \\
 \bottomrule
-\end{tabular}
-\caption{Demo Account Credentials}
-\end{table}
-
-The demo account includes 7 days of realistic Type 1 Diabetes data with glucose readings, meals, insulin doses, and sleep tracking.
+\end{longtable}
 
 %==============================================================================
-\section{Conclusion}
+\section{Known Issues and Limitations}
 %==============================================================================
 
-The Diabetes Management System (DMS) represents a modern approach to diabetes self-management, combining real-time CGM integration, AI-powered insights, and an intuitive user interface. Built on a robust cross-platform architecture using Flutter and backed by Firebase and FastAPI, DMS provides a scalable foundation for comprehensive diabetes care.
-
-Key achievements include:
-
-\begin{itemize}[leftmargin=*]
-    \item Successful integration with Dexcom CGM devices
-    \item AI-powered glucose analysis and recommendations
-    \item Cross-platform support (iOS, Android, Web, Desktop)
-    \item Dual-interface design for patients and healthcare providers
-    \item Modern, accessible Material Design 3 interface
-\end{itemize}
-
-Future development will focus on enhanced doctor-patient connectivity, additional CGM device support, and integration with health platforms like Apple Health and Google Fit.
+\begin{enumerate}
+    \item \textbf{Dexcom Package Bug:} The \texttt{dexcom} Dart package (v1.0.7) fails to parse timestamps with positive UTC offsets (e.g.\ \texttt{+0100}). This is bypassed by making direct HTTP calls to the Dexcom Share API.
+    \item \textbf{Unofficial API:} The Dexcom Share API is not officially supported and may change without notice.
+    \item \textbf{Firestore Indexes:} Composite queries (e.g.\ timestamp range + patientId) may require creating indexes in the Firebase Console. Currently, time-range filtering is done client-side.
+    \item \textbf{Rate Limiting:} The Dexcom API allows 60,000 requests per hour. Excessive polling may hit this limit.
+    \item \textbf{Android Emulator Networking:} The Android emulator (API~36) may lose internet connectivity, requiring a cold boot or WiFi toggle to restore.
+\end{enumerate}
 
 %==============================================================================
-\section*{Acknowledgments}
+\section{Application Screenshots}
 %==============================================================================
 
-\begin{itemize}[leftmargin=*]
-    \item \textbf{Dexcom} -- For providing the CGM API
-    \item \textbf{Firebase/Google} -- For authentication and database services
-    \item \textbf{Flutter Team} -- For the cross-platform framework
-    \item \textbf{FastAPI} -- For the high-performance Python backend framework
-    \item \textbf{Wrocław University of Science and Technology} -- For academic support
-\end{itemize}
+% --- Group 1: Authentication Screens ---
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{login_page.png}
+        \caption{Login Screen}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{registration.png}
+        \caption{Registration}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{profile-patient.png}
+        \caption{Patient: Profile}
+    \end{minipage}
+\end{figure}
+
+% --- Group 2: Patient Features ---
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{main_patient2.png}
+        \caption{Patient: Main Screen}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{history_patient.png}
+        \caption{Patient: History}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{alerts_patient.png}
+        \caption{Patient: Alerts}
+    \end{minipage}
+\end{figure}
+
+% --- Group 3: Patient Views and Integrations ---
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{main_patient.png}
+        \caption{Patient: Main Screen}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{main_patient3.png}
+        \caption{Patient: Glucose Charts View}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{health_connections_patient.png}
+        \caption{Health Connections}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{ai_assistant.png}
+        \caption{Patient: AI Assistant}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{demo_analysis.png}
+        \caption{Doctor: Profile}
+    \end{minipage}
+    \hfill
+\end{figure}
+
+% --- Group 4: Doctor Views ---
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{main_doctor.png}
+        \caption{Doctor: Main Screen}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{profile_doctor.png}
+        \caption{Doctor: Profile}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{alerts_doctor.png}
+        \caption{Doctor: Alerts + Notifications}
+    \end{minipage}
+\end{figure}
 
 %==============================================================================
-\section*{References}
+\section{Future Roadmap}
 %==============================================================================
 
-\begin{itemize}[leftmargin=*]
-    \item Flutter Documentation: \url{https://docs.flutter.dev/}
-    \item Firebase Documentation: \url{https://firebase.google.com/docs}
-    \item Dexcom Developer Portal: \url{https://developer.dexcom.com/}
-    \item FastAPI Documentation: \url{https://fastapi.tiangolo.com/}
-    \item Material Design 3: \url{https://m3.material.io/}
-\end{itemize}
+\begin{enumerate}
+    \item \textbf{Push Notifications} -- Firebase Cloud Messaging for real-time critical alerts.
+    \item \textbf{Data Export} -- PDF/CSV export of glucose history and statistics.
+    \item \textbf{Bluetooth Integration} -- Direct BLE connectivity with CGM sensors.
+    \item \textbf{Google/Apple Sign-In} -- Social authentication providers.
+    \item \textbf{Unit Switching} -- Real-time mg/dL $\leftrightarrow$ mmol/L conversion.
+    \item \textbf{Doctor Notes} -- In-app notes and recommendations from doctor to patient.
+    \item \textbf{QR Code Sharing} -- Quick patient--doctor pairing via QR codes.
+    \item \textbf{Offline Support} -- Full offline mode with local database and sync-on-reconnect.
+    \item \textbf{Unit Tests} -- Comprehensive test coverage for providers, services, and widgets.
+    \item \textbf{Internationalisation} -- Multi-language support (Polish, English, German).
+\end{enumerate}
 
+% ==============================================================================
 \end{document}
+% ==============================================================================
